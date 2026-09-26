@@ -41,7 +41,7 @@ export function AccountMenu({ user }: { user: ShellUser }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[0.75rem] font-semibold text-white transition hover:opacity-85"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[0.75rem] font-semibold text-[var(--accent-on)] transition hover:opacity-85"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"

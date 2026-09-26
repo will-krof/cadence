@@ -4,23 +4,26 @@
   color-scheme: light;
 
   /* Surfaces */
-  --surface: #fcfcfb;
-  --plane: #f9f9f7;
+  --surface: #ffffff;
+  --plane: #eef1f3;
   --surface-raised: #ffffff;
 
   /* Ink */
-  --ink: #0b0b0b;
-  --ink-secondary: #52514e;
-  --ink-muted: #898781;
+  --ink: #1c2935;
+  --ink-secondary: #52616d;
+  --ink-muted: #768793;
 
   /* Lines */
-  --hairline: rgba(11, 11, 11, 0.1);
-  --gridline: #e1e0d9;
-  --baseline: #c3c2b7;
+  --hairline: #dce2e6;
+  --gridline: #d3dde2;
+  --baseline: #b4c1c9;
 
   /* Accents */
-  --accent: #2a78d6;
-  --accent-wash: rgba(42, 120, 214, 0.08);
+  --accent: #617b1c;
+  --accent-bright: #e4f47a;
+  --accent-wash: #f1f7d8;
+  --accent-contrast: #17212b;
+  --accent-on: #ffffff;
 
   /* The one red. Deleting, and warning about deleting, was a literal hex in a
      dozen components; a colour that means something should be named once. */
@@ -39,20 +42,23 @@
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
 
-    --surface: #1a1a19;
-    --plane: #0d0d0d;
-    --surface-raised: #212120;
+    --surface: #26323f;
+    --plane: #17212b;
+    --surface-raised: #2e3b49;
 
-    --ink: #ffffff;
-    --ink-secondary: #c3c2b7;
-    --ink-muted: #898781;
+    --ink: #f5f8fa;
+    --ink-secondary: #c7d2d9;
+    --ink-muted: #a2b0bb;
 
-    --hairline: rgba(255, 255, 255, 0.1);
-    --gridline: #2c2c2a;
-    --baseline: #383835;
+    --hairline: #475665;
+    --gridline: #34404d;
+    --baseline: #5b6b78;
 
-    --accent: #3987e5;
-    --accent-wash: rgba(57, 135, 229, 0.12);
+    --accent: #e4f47a;
+    --accent-bright: #e4f47a;
+    --accent-wash: #39462e;
+    --accent-contrast: #17212b;
+    --accent-on: #17212b;
 
     --danger: #e56a6a;
     --danger-wash: rgba(229, 106, 106, 0.14);
@@ -62,20 +68,23 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --surface: #1a1a19;
-  --plane: #0d0d0d;
-  --surface-raised: #212120;
+  --surface: #26323f;
+  --plane: #17212b;
+  --surface-raised: #2e3b49;
 
-  --ink: #ffffff;
-  --ink-secondary: #c3c2b7;
-  --ink-muted: #898781;
+  --ink: #f5f8fa;
+  --ink-secondary: #c7d2d9;
+  --ink-muted: #a2b0bb;
 
-  --hairline: rgba(255, 255, 255, 0.1);
-  --gridline: #2c2c2a;
-  --baseline: #383835;
+  --hairline: #475665;
+  --gridline: #34404d;
+  --baseline: #5b6b78;
 
-  --accent: #3987e5;
-  --accent-wash: rgba(57, 135, 229, 0.12);
+  --accent: #e4f47a;
+  --accent-bright: #e4f47a;
+  --accent-wash: #39462e;
+  --accent-contrast: #17212b;
+  --accent-on: #17212b;
 
   --danger: #e56a6a;
   --danger-wash: rgba(229, 106, 106, 0.14);
@@ -102,6 +111,46 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Shared Sketchspace family chrome. The dark band anchors every entry point;
+   the light workspace and lime action carry the same cues into the app. */
+.brand-header {
+  background: #17212b;
+  color: #fff;
+  border-bottom: 1px solid #34404d;
+}
+
+.brand-header .btn-secondary {
+  border-color: #475665;
+  background: #26323f;
+  color: #dbe3e8;
+}
+
+.brand-header .btn-secondary:hover,
+.brand-header button[aria-haspopup="menu"]:hover {
+  background: #354350;
+}
+
+.brand-header button[aria-haspopup="menu"] {
+  border-color: #475665;
+}
+
+.brand-header [role="menu"] {
+  color: var(--ink);
+}
+
+.brand-header .brand-caption {
+  color: #a7b7c2;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #a6c425;
+  outline-offset: 2px;
 }
 
 @layer components {
@@ -149,6 +198,7 @@ body {
     border-radius: var(--radius-lg);
     border: 1px solid var(--hairline);
     background: var(--surface);
+    box-shadow: 0 2px 12px #17212b08;
   }
 
   .chip {
@@ -218,13 +268,15 @@ body {
   }
 
   .btn-primary {
-    background: var(--ink);
-    color: var(--surface);
-    border: 1px solid var(--ink);
+    background: var(--accent-bright);
+    color: var(--accent-contrast);
+    border: 1px solid var(--accent-bright);
+    font-weight: 750;
   }
 
   .btn-primary:hover {
-    opacity: 0.85;
+    background: #f0ffa4;
+    border-color: #f0ffa4;
   }
 
   .btn-secondary {
@@ -234,7 +286,7 @@ body {
   }
 
   .btn-secondary:hover {
-    background: var(--plane);
+    background: var(--accent-wash);
   }
 
   /* The one destructive button, so "this deletes something" looks the same

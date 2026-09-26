@@ -9,7 +9,7 @@ export default async function LandingPage() {
 
   return (
     <div className="schematic thin-scroll flex-1 overflow-y-auto bg-[var(--plane)]">
-      <header className="flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
+      <header className="brand-header flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
         <Wordmark />
         <div className="flex items-center gap-2">
           {inside ? (
@@ -251,7 +251,7 @@ function Step({
   return (
     <li className="flex gap-3.5">
       <span
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-semibold text-white"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-semibold text-[var(--accent-on)]"
         style={{ background: "var(--accent)" }}
         aria-hidden="true"
       >

@@ -487,7 +487,7 @@ function ProjectInitial({
 }) {
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-[var(--radius)] font-semibold text-white uppercase ${
+      className={`flex shrink-0 items-center justify-center rounded-[var(--radius)] font-semibold text-[var(--accent-on)] uppercase ${
         size === "sm" ? "h-9 w-9 text-base" : "h-12 w-12 text-lg"
       }`}
       style={{ background: "var(--accent)" }}

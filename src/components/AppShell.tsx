@@ -455,8 +455,13 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
 
   return (
     <div className="flex h-full flex-col bg-[var(--plane)]">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--hairline)] bg-[var(--surface)] px-3 py-2.5 sm:px-4">
-        <Wordmark />
+      <header className="brand-header flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="flex min-w-0 items-center gap-4">
+          <Wordmark />
+          <span className="brand-caption hidden border-l border-[#475665] pl-4 text-[0.625rem] font-bold uppercase tracking-[0.16em] sm:block">
+            Workspace
+          </span>
+        </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           {member ? <MemberMenu member={member} /> : user && <AccountMenu user={user} />}
@@ -580,7 +585,7 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
                       className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[0.3rem] text-[0.625rem] font-semibold uppercase"
                       style={{
                         background: active ? "var(--accent)" : "var(--gridline)",
-                        color: active ? "#fff" : "var(--ink-secondary)",
+                        color: active ? "var(--accent-on)" : "var(--ink-secondary)",
                       }}
                     >
                       {p.name.slice(0, 1)}
@@ -948,4 +953,3 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
     </div>
   );
 }
-

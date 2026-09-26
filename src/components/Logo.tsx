@@ -1,6 +1,6 @@
 /**
  * Cadence mark — three offset bars reading as both a Gantt timeline and a
- * rhythm/beat pattern.
+ * rhythm/beat pattern, drawn in the same outlined tile as Sketchspace.
  */
 export function Logo({ size = 26 }: { size?: number }) {
   return (
@@ -12,10 +12,10 @@ export function Logo({ size = 26 }: { size?: number }) {
       aria-hidden="true"
       className="shrink-0"
     >
-      <rect width="26" height="26" rx="7" fill="var(--accent)" />
-      <rect x="5" y="7" width="12" height="3" rx="1.5" fill="white" />
-      <rect x="8" y="11.5" width="13" height="3" rx="1.5" fill="white" opacity="0.85" />
-      <rect x="5" y="16" width="9" height="3" rx="1.5" fill="white" opacity="0.7" />
+      <rect x="1" y="1" width="24" height="24" rx="5" stroke="var(--accent-bright)" strokeWidth="2" />
+      <rect x="5" y="6.5" width="12" height="2.5" rx="1.25" fill="var(--accent-bright)" />
+      <rect x="8" y="11.75" width="13" height="2.5" rx="1.25" fill="var(--accent-bright)" />
+      <rect x="5" y="17" width="9" height="2.5" rx="1.25" fill="var(--accent-bright)" />
     </svg>
   );
 }
@@ -24,7 +24,7 @@ export function Wordmark() {
   return (
     <span className="flex items-center gap-2">
       <Logo />
-      <span className="text-[0.9375rem] font-semibold tracking-tight">
+      <span className="text-[1.125rem] font-extrabold tracking-[-0.045em]">
         Cadence
       </span>
     </span>
