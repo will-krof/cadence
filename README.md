@@ -2,11 +2,11 @@
 
 # Cadence
 
-### Sprint planning that doesn't make you choose between a Gantt chart and a board.
+### A timeline and a board for the same work.
 
-One set of tasks. A timeline for the plan, a kanban tracker for the day,
-a roster for the people — and a board whose columns you name, colour and
-order yourself, because no tool knows what your team's states are called.
+Plan a sprint on the Gantt timeline, move its tasks across a kanban board,
+and keep the people and project knowledge close. Cadence gives each team its
+own columns, colours and workflow in a focused workspace.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.2-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-087EA4?style=flat-square&logo=react&logoColor=white)](https://react.dev)
@@ -17,7 +17,9 @@ order yourself, because no tool knows what your team's states are called.
 
 <br />
 
-<img src="docs/screenshots/timeline.png" alt="The Cadence timeline: a sprint's tasks as Gantt bars, with the column each one stands in and who is on it" width="100%" />
+<img src="docs/screenshots/cadence-timeline.webp" alt="Cadence timeline in the refreshed navy, lime and light workspace design" width="100%" />
+
+<sub>Part of the same design family as <a href="https://github.com/will-krof/sketchspace">Sketchspace</a>.</sub>
 
 </div>
 
@@ -43,8 +45,6 @@ which of them it wants.
 <br />
 
 ## The board is yours
-
-<img src="docs/screenshots/columns.png" alt="A tracker column being renamed, recoloured, moved and deleted from its own panel" width="100%" />
 
 Most boards hand you three or five columns and a nice word for the fact that you
 can't change them. Cadence hands you an empty tracker and a text field.
@@ -73,8 +73,8 @@ with Done already ticked.
 ## Quick start
 
 ```bash
-git clone https://github.com/will-krof/gantt-chart.git
-cd gantt-chart
+git clone https://github.com/will-krof/cadence.git
+cd cadence
 
 npm install                                # also generates the Prisma client
 echo 'DATABASE_URL="file:./dev.db"' > .env
@@ -97,22 +97,23 @@ beside the app and nothing to provision before it starts.
 
 ## A look around
 
+These screenshots use a fictional Northstar App workspace and show the current
+Cadence design.
+
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/tracker.png" alt="The tracker: tasks as cards in columns the team named and coloured itself" /></td>
-<td width="50%"><img src="docs/screenshots/project.png" alt="The project card: statistics, sprints, and the people on the project with their roles and invite links" /></td>
+<td width="50%"><img src="docs/screenshots/cadence-tracker.webp" alt="Cadence tracker with tasks arranged in custom columns" /></td>
+<td width="50%"><img src="docs/screenshots/cadence-overview.webp" alt="Cadence project overview with sprint, task and team summaries" /></td>
 </tr>
 <tr>
-<td><b>The tracker.</b> Columns in this team's own words, in this team's own colours. Drag cards between them with a mouse, a pen or a finger; press the <b>…</b> on any header to rename it, recolour it, move it or delete it.</td>
-<td><b>The project card.</b> Everything about one project in one place: where the work stands column by column, the sprints, and who is on it — with their roles and their invite links right there.</td>
+<td><b>The tracker.</b> Move task cards between the columns your team named and coloured.</td>
+<td><b>The project overview.</b> See progress, sprints and people in one place.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/team.png" alt="The team roster with a profile open beside it" /></td>
-<td><img src="docs/screenshots/timeline-dark.png" alt="The timeline in the dark theme" /></td>
+<td colspan="2"><img src="docs/screenshots/cadence-dark.webp" alt="Cadence timeline in the navy dark theme" /></td>
 </tr>
 <tr>
-<td><b>The roster.</b> Everyone in the workspace, searchable by name, job title or email, with the projects and the work each one carries.</td>
-<td><b>Dark, too.</b> One toggle in the corner, remembered per browser.</td>
+<td colspan="2"><b>Dark theme.</b> The same timeline and controls in a deeper navy palette. The theme toggle remembers your choice in the browser.</td>
 </tr>
 </table>
 
@@ -437,5 +438,5 @@ A database created after this was written never meets it.
 <br />
 
 <div align="center">
-<sub>Screenshots are of a seeded demo workspace — its columns are that team's, not ours. Sprint planning, without the ceremony.</sub>
+<sub>Screenshots show fictional demo data. Cadence and Sketchspace share a visual language while serving different workflows.</sub>
 </div>
