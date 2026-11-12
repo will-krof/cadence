@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { BoardProvider, useBoard } from "@/components/BoardProvider";
 import { Wordmark } from "@/components/Logo";
+import { ReportBugButton } from "@/components/ReportBugButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FeedbackProvider } from "@/components/Feedback";
 import { ProjectOverview } from "@/components/ProjectOverview";
@@ -460,6 +461,7 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <ReportBugButton />
           <ThemeToggle />
           {member ? <MemberMenu member={member} /> : user && <AccountMenu user={user} />}
         </div>
@@ -841,13 +843,13 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
                   project you expected to see.
                 </p>
               ) : (
-                <div className="flex flex-col items-center gap-3 text-center">
+                <div className="flex min-w-0 max-w-full flex-col items-center gap-3 text-center">
                   <p className="text-sm text-[var(--ink-secondary)]">
                     No projects yet.
                   </p>
                   <button
                     onClick={() => setShowNewProject(true)}
-                    className="btn-primary"
+                    className="btn-primary max-w-full whitespace-normal"
                   >
                     Create your first project
                   </button>

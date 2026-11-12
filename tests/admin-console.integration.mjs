@@ -49,7 +49,7 @@ try {
   const grant = spawnSync(process.execPath, ["scripts/set-superadmin.mjs", "operator@example.invalid"], { env, encoding: "utf8" });
   assert.equal(grant.status, 0, grant.stderr);
 
-  for (const path of ["/api/admin/users", "/api/admin/registrations", "/api/admin/audit"]) {
+  for (const path of ["/api/admin/users", "/api/admin/registrations", "/api/admin/audit", "/api/admin/bug-reports"]) {
     assert.equal((await anonymous.call(path)).status, 401);
     assert.equal((await ordinary.call(path)).status, 404);
   }
@@ -97,10 +97,50 @@ try {
   assert.equal((await admin.ok(`/api/tasks?projectId=${project.id}`)).length, 0);
   assert.equal((await admin.call(`/api/projects/${project.id}`, { name: "Not allowed" }, "PATCH")).status, 404);
 
+  // Text-only support tickets: authenticated identity and superadmin-only inbox.
+  const draft = { subject: "Tracker issue", message: "Steps to reproduce\n<script>alert('test')</script>\n![image](https://example.invalid/image.png)" };
+  assert.equal((await anonymous.call("/api/bug-reports", draft)).status, 401);
+  assert.equal((await target.call("/api/bug-reports", { ...draft, reporterEmail: "forged@example.invalid" })).status, 400);
+  assert.equal((await target.call("/api/bug-reports", { ...draft, attachments: [] })).status, 400);
+  assert.equal((await target.call("/api/bug-reports", { ...draft, subject: " " })).status, 400);
+  assert.equal((await target.call("/api/bug-reports", { ...draft, message: "x".repeat(10001) })).status, 400);
+  const form = new FormData(); form.append("subject", "Upload attempt"); form.append("file", new Blob(["not allowed"]), "test.txt");
+  assert.equal((await fetch(base + "/api/bug-reports", { method: "POST", headers: { Cookie: target.cookie, Origin: base }, body: form })).status, 415);
+  assert.equal((await fetch(base + "/api/bug-reports", { method: "POST", headers: { Cookie: target.cookie, Origin: "https://attacker.example", "Content-Type": "application/json" }, body: JSON.stringify(draft) })).status, 403);
+  const ownerTicket = await target.ok("/api/bug-reports", draft);
+  const memberTicket = await member.ok("/api/bug-reports", { subject: "Member issue", message: "A member can report a bug too." });
+  assert.equal((await member.call("/api/admin/bug-reports")).status, 401);
+  const inbox = await admin.ok("/api/admin/bug-reports");
+  assert.equal(inbox.total, 2);
+  const ownerReport = inbox.tickets.find(t => t.id === ownerTicket.id), memberReport = inbox.tickets.find(t => t.id === memberTicket.id);
+  assert.equal(ownerReport.reporterEmail, account.email);
+  assert.equal(ownerReport.reporterName, "Moderation Alice");
+  assert.equal(ownerReport.reporterKind, "OWNER");
+  assert.equal(ownerReport.message, draft.message, "Report content must stay plain text");
+  assert.equal(memberReport.reporterName, person.name);
+  assert.equal(memberReport.reporterUsername, "invited_tester");
+  assert.equal(memberReport.reporterKind, "MEMBER");
+  assert.equal("userId" in memberReport || "passwordHash" in memberReport || "projects" in memberReport, false);
+  assert.equal((await ordinary.call(`/api/admin/bug-reports/${ownerTicket.id}`, { status: "RESOLVED" }, "PATCH")).status, 404);
+  assert.equal((await admin.call(`/api/admin/bug-reports/${ownerTicket.id}`, { status: "INVALID" }, "PATCH")).status, 400);
+  assert.equal((await admin.call(`/api/admin/bug-reports/${ownerTicket.id}`, { status: "RESOLVED", message: "tampered" }, "PATCH")).status, 400);
+  assert.equal((await admin.call(`/api/admin/bug-reports/${ownerTicket.id}`, {}, "DELETE")).status, 405);
+  await admin.ok(`/api/admin/bug-reports/${ownerTicket.id}`, { status: "IN_PROGRESS" }, "PATCH");
+  await admin.ok(`/api/admin/bug-reports/${ownerTicket.id}`, { status: "RESOLVED" }, "PATCH");
+  assert.equal((await admin.ok("/api/admin/bug-reports?status=RESOLVED")).total, 1);
+  assert.equal((await admin.ok("/api/admin/bug-reports?q=INVITED_TESTER")).total, 1);
+  for (let i = 0; i < 3; i++) await target.ok("/api/bug-reports", { subject: `Rate check ${i}`, message: "Test report" });
+  const limitedReports = await Promise.all([0, 1].map(i => target.call("/api/bug-reports", { subject: `Concurrent report ${i}`, message: "Last slot" })));
+  assert.deepEqual(limitedReports.map(r => r.status).sort(), [201, 429], "Concurrent reports share a persistent per-author limit");
+  assert.equal((await admin.ok("/api/admin/bug-reports")).total, 6);
+  console.log("Bug reports passed: text-only and upload rejection, sender identity, owner/member access, private inbox, status changes, literal text, CSRF and concurrent persistent rate limiting.");
+
   await admin.ok(`/api/admin/users/${account.id}`, { action: "BAN", reason: "Integration test" }, "PATCH");
   assert.equal((await admin.ok("/api/admin/users?status=banned")).total, 1);
   assert.equal((await target.call("/api/projects")).status, 401);
   assert.equal((await member.call("/api/projects")).status, 401);
+  assert.equal((await target.call("/api/bug-reports", draft)).status, 401);
+  assert.equal((await member.call("/api/bug-reports", draft)).status, 401);
   const blocked = new Client(), blockedMember = new Client();
   assert.equal((await blocked.call("/api/auth/login", { email: account.email, password })).status, 403);
   assert.equal((await blockedMember.call("/api/auth/login", { login: "invited_tester", password })).status, 403);

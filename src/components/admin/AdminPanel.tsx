@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useFeedback } from "@/components/Feedback";
 import { Field, Modal } from "@/components/ui";
+import { BugReportInbox } from "@/components/admin/BugReportInbox";
 import { RegistrationChart } from "@/components/admin/RegistrationChart";
 import type {
   AdminAction,
@@ -169,6 +170,7 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
 
   return (
     <div className="space-y-6">
+      <BugReportInbox />
       <section className="card p-4 sm:p-6" aria-label="Registration activity">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="t-heading">Registrations</h2>

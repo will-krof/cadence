@@ -381,6 +381,24 @@ npm run make-superadmin -- you@example.com --revoke
 
 <br />
 
+## Bug reports
+
+Every signed-in workspace owner and invited member can use **Report a bug** in
+the workspace header. The form accepts only a subject and description, with no
+files, images, media uploads or automatic project contents. Sender name and
+email/username are derived from the authenticated session, not submitted fields.
+
+The superadmin's **Bug reports** inbox in `/admin` shows sender details, submission
+time and the full plain-text report. Search by content or sender, filter by status,
+and mark tickets Open, In progress or Resolved. Other users cannot read the inbox
+or change ticket status. Report text is never rendered as HTML, Markdown or media.
+
+Reports have a 200-character subject and 10,000-character description, with a
+persistent limit of five reports per author per hour, including concurrent requests.
+Only text-only JSON is accepted; multipart uploads and attachment fields are
+rejected. Tickets retain their sender snapshot if the profile is renamed or removed.
+No ticket-deletion endpoint is provided.
+
 ## Built with
 
 | | |

@@ -49,6 +49,7 @@ model User {
   notes        Note[]
   adminActions AdminAudit[] @relation("AdminActor")
   moderation   AdminAudit[] @relation("AdminTarget")
+  bugReports   BugReport[]
 
   @@index([createdAt])
   @@index([bannedAt, createdAt])
@@ -87,6 +88,7 @@ model Session {
 }
 
 model Developer {
+  bugReports BugReport[]
   id    String @id @default(cuid())
   name  String
   color String @default("#60a5fa")
@@ -637,4 +639,27 @@ model Sprint {
 
   @@unique([projectId, number])
   @@index([projectId])
+}
+
+/// Text-only support requests; sender details are captured from the session.
+model BugReport {
+  id                String   @id @default(cuid())
+  subject           String
+  message           String
+  status            String   @default("OPEN")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  reporterKind      String
+  reporterName      String
+  reporterEmail     String?
+  reporterUsername  String?
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  developerId       String?
+  developer         Developer? @relation(fields: [developerId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([developerId, createdAt])
 }
