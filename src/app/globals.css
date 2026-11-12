@@ -2,6 +2,7 @@
 
 :root {
   color-scheme: light;
+  --priority-medium: #2269b4;
 
   /* Surfaces */
   --surface: #ffffff;
@@ -42,6 +43,7 @@
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
 
+    --priority-medium: #79c0ff;
     --surface: #26323f;
     --plane: #17212b;
     --surface-raised: #2e3b49;
@@ -67,6 +69,7 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --priority-medium: #79c0ff;
 
   --surface: #26323f;
   --plane: #17212b;
@@ -234,6 +237,10 @@ textarea:focus-visible {
     line-height: 1.4;
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .select-with-dot {
+    padding-inline-start: 1.75rem;
   }
 
   .input::placeholder {

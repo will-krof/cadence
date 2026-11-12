@@ -79,6 +79,9 @@ export async function POST(request: NextRequest) {
         passwordHash: await hashPassword(password),
         // Written here, never read from the request.
         role: "ADMIN",
+        developers: {
+          create: { name: named.value || email, email },
+        },
       },
       select: { id: true, email: true, name: true },
     });

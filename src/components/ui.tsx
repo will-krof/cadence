@@ -741,7 +741,7 @@ export function ColumnPill({
         onChange={(next) => onChange(next === UNSORTED ? null : next)}
         options={options}
         disabled={disabled}
-        className="select truncate pl-[1.375rem] font-medium"
+        className="select select-with-dot truncate font-medium"
         style={{
           background: `color-mix(in srgb, ${color} 12%, var(--surface-raised))`,
           borderColor: `color-mix(in srgb, ${color} 28%, transparent)`,
@@ -760,8 +760,6 @@ export function ColumnPill({
  */
 export function PriorityMark({ priority }: { priority: TaskPriority }) {
   const meta = priorityMeta(priority);
-  // Ordinary work is the common case and says nothing; a row is quieter for it.
-  if (priority === "MEDIUM") return null;
   return (
     <span
       className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold leading-none"
@@ -798,7 +796,7 @@ export function PrioritySelect({
         value={priority}
         onChange={(e) => onChange(e.target.value as TaskPriority)}
         disabled={disabled}
-        className="select truncate pl-[1.375rem] font-medium"
+        className="select select-with-dot truncate font-medium"
         aria-label="Task priority"
       >
         {PRIORITY_OPTIONS.map((p) => (

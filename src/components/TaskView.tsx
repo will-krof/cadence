@@ -111,7 +111,7 @@ export function TaskView({
             <Chip color={columnColor} strong>
               {columnName}
             </Chip>
-            {fields.priority && task.priority !== "MEDIUM" && (
+            {fields.priority && (
               <Chip color={priority.color}>{priority.label}</Chip>
             )}
             {fields.dates && task.startDate && task.endDate && (

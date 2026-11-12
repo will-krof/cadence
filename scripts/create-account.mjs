@@ -72,10 +72,15 @@ if (password.length < MIN_PASSWORD_LENGTH) {
   process.exit(1);
 }
 
-const sql = `INSERT INTO "User" ("id", "email", "name", "passwordHash", "createdAt")
-VALUES (${quote(randomUUID())}, ${quote(email)}, ${
+const userId = randomUUID();
+const sql = `BEGIN;
+INSERT INTO "User" ("id", "email", "name", "passwordHash", "createdAt")
+VALUES (${quote(userId)}, ${quote(email)}, ${
   args.name.trim() ? quote(args.name.trim()) : "NULL"
-}, ${quote(hashPassword(password))}, CURRENT_TIMESTAMP);`;
+}, ${quote(hashPassword(password))}, CURRENT_TIMESTAMP);
+INSERT INTO "Developer" ("id", "userId", "name", "email")
+VALUES (${quote(randomUUID())}, ${quote(userId)}, ${quote(args.name.trim() || email)}, ${quote(email)});
+COMMIT;`;
 
 try {
   execFileSync(

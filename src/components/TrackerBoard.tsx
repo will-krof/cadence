@@ -756,8 +756,6 @@ function ColumnForm({
     const created = await onCreate({ name: trimmed, color, isDone });
     setSaving(false);
     if (!created) return;
-    // Ready for the next one: a board is usually written a few columns at a
-    // time, and being handed an empty field back is what that wants.
     setName("");
     setIsDone(false);
     onDone?.();
@@ -849,7 +847,7 @@ function AddColumn({
         </button>
       </header>
       <div className="p-3">
-        <ColumnForm onCreate={onCreate} autoFocus />
+        <ColumnForm onCreate={onCreate} autoFocus onDone={() => setOpen(false)} />
       </div>
     </section>
   );

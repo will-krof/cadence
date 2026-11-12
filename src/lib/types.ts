@@ -127,7 +127,7 @@ export const PRIORITY_OPTIONS: {
   color: string;
 }[] = [
   { value: "LOW", label: "Low", mark: "↓", color: "#898781" },
-  { value: "MEDIUM", label: "Medium", mark: "–", color: "#2a78d6" },
+  { value: "MEDIUM", label: "Medium", mark: "–", color: "var(--priority-medium)" },
   { value: "HIGH", label: "High", mark: "↑", color: "#ec835a" },
   { value: "URGENT", label: "Urgent", mark: "!", color: "#e34948" },
 ];
