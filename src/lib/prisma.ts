@@ -1,6 +1,15 @@
 import path from "node:path";
 import { PrismaClient } from "@/generated/prisma/client";
 
+// Turbopack rewrites the generated client's import.meta.url, so Prisma's
+// inferred engine directory can point outside the deployed function. The
+// tracing include in next.config.ts copies this engine under the app root.
+if (process.env.VERCEL === "1" && !process.env.PRISMA_QUERY_ENGINE_LIBRARY) {
+  process.env.PRISMA_QUERY_ENGINE_LIBRARY = path.join(
+    process.cwd(), "src/generated/prisma/libquery_engine-rhel-openssl-3.0.x.so.node"
+  );
+}
+
 /**
  * Where a relative SQLite file actually is.
  *
