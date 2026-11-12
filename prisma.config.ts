@@ -4,10 +4,12 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const postgres = /^postgres(?:ql)?:/.test(process.env.DATABASE_URL ?? "");
+
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: postgres ? "prisma/schema.postgresql.prisma" : "prisma/schema.prisma",
   migrations: {
-    path: "prisma/migrations",
+    path: postgres ? "prisma/postgresql/migrations" : "prisma/migrations",
   },
   engine: "classic",
   datasource: {
@@ -17,6 +19,8 @@ export default defineConfig({
     // client happens on install, before anybody has written a `.env`, so that
     // refusal was the first thing a fresh checkout hit. The commands that do
     // need a database still fail on an empty URL, and say so.
-    url: process.env.DATABASE_URL ?? "",
+    url: (postgres
+      ? process.env.DIRECT_URL || process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING
+      : undefined) || process.env.DATABASE_URL || "",
   },
 });

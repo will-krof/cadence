@@ -27,8 +27,8 @@ const quoted = `'${email.replace(/'/g, "''")}'`;
 
 try {
   const out = execFileSync(
-    "npx",
-    ["prisma", "db", "execute", "--schema", "prisma/schema.prisma", "--stdin"],
+    process.execPath,
+    ["scripts/prisma.mjs", "db", "execute", "--stdin"],
     {
       input: `UPDATE "User" SET "role" = '${role}' WHERE "email" = ${quoted};`,
       stdio: ["pipe", "pipe", "pipe"],

@@ -51,7 +51,7 @@ function askHidden(question) {
   });
 }
 
-/** SQLite string literal: the only thing to escape is the quote itself. */
+/** SQL string literal: the only thing to escape is the quote itself. */
 const quote = (value) => `'${String(value).replace(/'/g, "''")}'`;
 
 const args = parseArgs(process.argv.slice(2));
@@ -79,8 +79,8 @@ VALUES (${quote(randomUUID())}, ${quote(email)}, ${
 
 try {
   execFileSync(
-    "npx",
-    ["prisma", "db", "execute", "--schema", "prisma/schema.prisma", "--stdin"],
+    process.execPath,
+    ["scripts/prisma.mjs", "db", "execute", "--stdin"],
     { input: sql, stdio: ["pipe", "pipe", "pipe"] }
   );
   console.log(`Account created: ${email}`);

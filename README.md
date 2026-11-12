@@ -72,6 +72,9 @@ with Done already ticked.
 
 ## Quick start
 
+For a hosted installation without a local checkout, follow the
+[Vercel + PostgreSQL deployment guide](docs/vercel.md).
+
 ```bash
 git clone https://github.com/will-krof/cadence.git
 cd cadence
