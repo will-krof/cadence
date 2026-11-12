@@ -29,7 +29,7 @@ export default async function InvitePage({
   const { token } = await params;
 
   const member = await prisma.projectMember.findFirst({
-    where: { inviteToken: token, inviteRevoked: false },
+    where: { inviteToken: token, inviteRevoked: false, project: { user: { bannedAt: null } } },
     select: {
       inviteExpiresAt: true,
       project: {

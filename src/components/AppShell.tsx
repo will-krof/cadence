@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { BoardProvider, useBoard } from "@/components/BoardProvider";
 import { Wordmark } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -65,10 +66,6 @@ const TaskModal = dynamic(() =>
 );
 const ProjectModal = dynamic(() =>
   import("@/components/ProjectModal").then((m) => m.ProjectModal)
-);
-/** Only a superadmin ever draws this one. */
-const InstallStats = dynamic(() =>
-  import("@/components/InstallStats").then((m) => m.InstallStats)
 );
 import {
   HideableView,
@@ -794,8 +791,12 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
             </label>
           )}
 
-          {/* Only a superadmin has one of these, and it holds counts alone. */}
-          {user?.role === "SUPERADMIN" && <InstallStats wide={wide} />}
+          {user?.role === "SUPERADMIN" && (
+            <Link href="/admin" aria-label="Admin panel" title="Admin panel"
+              className="mt-auto border-t border-[var(--hairline)] px-2 py-3 text-[0.75rem] font-medium text-[var(--accent)] hover:underline">
+              {wide ? "Admin panel" : "Admin"}
+            </Link>
+          )}
         </nav>
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--surface)]">

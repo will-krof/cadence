@@ -336,11 +336,32 @@ plans around them, so a colleague can see them.
 
 <br />
 
-One badge above admin, and it buys exactly one thing: a panel at the foot of the
-sidebar with counts of how the install is being used — how many admins there are,
-how many projects and people they have between them, and the per-workspace
-numbers. No names, no emails, no project titles, and no reach whatsoever into
-anybody's workspace.
+The sidebar's **Admin panel** link opens `/admin`. Only the sole superadmin can
+open it or call its APIs. It lists workspace accounts created through Sign up
+(name, email, registration date and access status); invited-member logins are
+excluded. Search, status filters, sorting and pagination help manage the list.
+There is no impersonation or access to another account's project contents.
+
+- **Ban** preserves data, blocks owner and invited-member access to the workspace,
+  and ends their sessions. **Restore access** permits a fresh sign-in.
+- **Sign out everywhere** ends current owner/member sessions without blocking a
+  fresh sign-in.
+- **Delete** requires typing the email, then permanently removes the account and
+  its workspace data through database cascades. The email can register again;
+  banning is the option for keeping access blocked.
+- The superadmin cannot ban or delete themselves, including through account
+  settings. The panel cannot grant the superadmin role.
+
+Daily registration charts cover 7, 30, 90 or 365 days in UTC, including zero days.
+Existing accounts are backfilled when the migration runs; earlier deleted
+accounts cannot be reconstructed. Anonymous daily totals remain after future
+account deletions. Database insert triggers count registrations transactionally
+(including operator-created workspace accounts); preserve these triggers when
+rebuilding the User table in a future SQLite migration.
+
+Recent moderation actions record action, time and optional ban reason. Deleting
+an account clears its identity relationship from the audit log; daily totals
+contain no account identifiers.
 
 It is granted from the command line, never from the app, so nothing in the app
 can hand it out:
@@ -390,6 +411,7 @@ scripts/            create-account, make-superadmin, preflight
 | `npm run build` / `npm start` | Production build and server |
 | `npm run lint` | ESLint |
 | `npm run create-account -- <email> --name "Name"` | Makes a workspace account. Asks for the password without echoing it; `--password` exists for scripts, at the cost of your shell history |
+| `npm run test:admin` | Exercises moderation APIs against a disposable local PostgreSQL database |
 | `npm run make-superadmin -- <email> [--revoke]` | Grants or takes back the superadmin badge |
 
 <br />
@@ -449,3 +471,16 @@ A database created after this was written never meets it.
 <div align="center">
 <sub>Screenshots show fictional demo data. Cadence and Sketchspace share a visual language while serving different workflows.</sub>
 </div>
+
+### Admin integration checks
+
+After a PostgreSQL production build, create an empty disposable local database
+named `cadence_admin_test_<suffix>` and run:
+
+```bash
+TEST_DATABASE_URL=postgresql://localhost:5432/cadence_admin_test_example npm run test:admin
+```
+
+The test refuses non-local hosts and other database names. It creates fake
+accounts, promotes a test operator and exercises ban, session revocation and
+permanent deletion. Never point it at a shared or production database.

@@ -26,7 +26,7 @@ export default async function AppPage() {
     );
   }
 
-  // The account's own role travels with it: a superadmin's sidebar carries the
-  // install's counts, and nothing else about the app changes.
+  // A superadmin has an account-management panel; workspace access is still
+  // scoped to their own projects by the same API rules as every other owner.
   return <AppShell user={viewer.user} />;
 }

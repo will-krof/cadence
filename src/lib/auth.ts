@@ -131,12 +131,12 @@ export const getSessionUser = cache(async function getSessionUser(): Promise<
     select: {
       id: true,
       expiresAt: true,
-      user: { select: { id: true, email: true, name: true, role: true } },
+      user: { select: { id: true, email: true, name: true, role: true, bannedAt: true } },
     },
   });
   if (!session) return null;
 
-  if (session.expiresAt.getTime() < Date.now()) {
+  if (session.user.bannedAt || session.expiresAt.getTime() < Date.now()) {
     await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
     return null;
   }
@@ -161,11 +161,14 @@ export const getSessionDeveloperId = cache(
 
     const session = await prisma.developerSession.findUnique({
       where: { tokenHash: hashToken(token) },
-      select: { id: true, developerId: true, expiresAt: true },
+      select: {
+        id: true, developerId: true, expiresAt: true,
+        developer: { select: { active: true, user: { select: { bannedAt: true } } } },
+      },
     });
     if (!session) return null;
 
-    if (session.expiresAt.getTime() < Date.now()) {
+    if (!session.developer.active || session.developer.user.bannedAt || session.expiresAt.getTime() < Date.now()) {
       await prisma.developerSession
         .delete({ where: { id: session.id } })
         .catch(() => {});

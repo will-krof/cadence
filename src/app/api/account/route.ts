@@ -197,6 +197,9 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const { viewer, response } = await requireViewer();
   if (response) return response;
+  if (viewer.kind === "owner" && viewer.user.role === "SUPERADMIN") {
+    return conflict("The superadmin account is protected. Transfer that role before closing this account.");
+  }
 
   const body = await request.json().catch(() => ({}));
   const password = typeof body.password === "string" ? body.password : "";

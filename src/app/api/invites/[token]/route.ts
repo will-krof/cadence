@@ -45,7 +45,7 @@ export async function POST(
   }
 
   const member = await prisma.projectMember.findFirst({
-    where: { inviteToken: token, inviteRevoked: false },
+    where: { inviteToken: token, inviteRevoked: false, project: { user: { bannedAt: null } } },
     select: {
       id: true,
       inviteExpiresAt: true,

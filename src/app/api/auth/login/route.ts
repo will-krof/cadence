@@ -71,6 +71,9 @@ export async function POST(request: NextRequest) {
     ? await prisma.user.findUnique({ where: { email } })
     : null;
   if (user && (await verifyPassword(password, user.passwordHash))) {
+    if (user.bannedAt) {
+      return NextResponse.json({ error: "This account has been banned. Contact the administrator." }, { status: 403 });
+    }
     clearRateLimit(request, "login", account);
     clearRateLimitBySubject("login-account", account);
     await createSession(user.id);
@@ -86,7 +89,7 @@ export async function POST(request: NextRequest) {
   const developer = username
     ? await prisma.developer.findUnique({
         where: { username },
-        select: { id: true, name: true, active: true, passwordHash: true },
+        select: { id: true, name: true, active: true, passwordHash: true, user: { select: { bannedAt: true } } },
       })
     : null;
   if (
@@ -94,6 +97,9 @@ export async function POST(request: NextRequest) {
     developer.passwordHash &&
     (await verifyPassword(password, developer.passwordHash))
   ) {
+    if (developer.user.bannedAt) {
+      return NextResponse.json({ error: "Access to this workspace has been suspended." }, { status: 403 });
+    }
     clearRateLimit(request, "login", account);
     clearRateLimitBySubject("login-account", account);
     await createMemberSession(developer.id);
