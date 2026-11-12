@@ -14,9 +14,17 @@ writeFileSync(
     schema.replace('provider = "sqlite"', 'provider = "postgresql"')
 );
 
+const args = process.argv.slice(2);
+// Prisma 6's db execute does not use the config's schema as its default.
+if (args[0] === "db" && args[1] === "execute" &&
+    !args.includes("--schema") && !args.includes("--url")) {
+  args.push("--schema", /^postgres(?:ql)?:/.test(process.env.DATABASE_URL ?? "")
+    ? "prisma/schema.postgresql.prisma" : "prisma/schema.prisma");
+}
+
 const result = spawnSync(
   process.execPath,
-  [fileURLToPath(new URL("node_modules/prisma/build/index.js", root)), ...process.argv.slice(2)],
+  [fileURLToPath(new URL("node_modules/prisma/build/index.js", root)), ...args],
   { cwd: fileURLToPath(root), stdio: "inherit", env: process.env }
 );
 if (result.error) console.error(result.error.message);

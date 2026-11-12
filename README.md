@@ -345,6 +345,12 @@ anybody's workspace.
 It is granted from the command line, never from the app, so nothing in the app
 can hand it out:
 
+**Only one account can hold SUPERADMIN per installation.** A database constraint
+rejects a second superadmin, even from direct SQL or concurrent commands.
+Registration and account settings cannot grant this role. Changing the holder
+requires an operator with database access to revoke the current holder first.
+An unknown email is rejected rather than reported as a successful promotion.
+
 ```bash
 npm run make-superadmin -- you@example.com
 npm run make-superadmin -- you@example.com --revoke

@@ -25,25 +25,45 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 const role = revoke ? "ADMIN" : "SUPERADMIN";
 const quoted = `'${email.replace(/'/g, "''")}'`;
 
+// Check existence and change the role in one transaction. The partial unique
+// index is the authority for concurrent promotions: only one account can win.
+// The temporary table's check works on both SQLite and PostgreSQL, including
+// on a missing account (db execute otherwise succeeds after updating zero rows).
+const sql = `BEGIN;
+CREATE TEMP TABLE "cadence_role_target" (
+  "matches" INTEGER NOT NULL CHECK ("matches" = 1)
+);
+INSERT INTO "cadence_role_target" SELECT COUNT(*) FROM "User" WHERE "email" = ${quoted};
+UPDATE "User" SET "role" = '${role}' WHERE "email" = ${quoted};
+DROP TABLE "cadence_role_target";
+COMMIT;`;
+
 try {
   const out = execFileSync(
     process.execPath,
     ["scripts/prisma.mjs", "db", "execute", "--stdin"],
     {
-      input: `UPDATE "User" SET "role" = '${role}' WHERE "email" = ${quoted};`,
+      input: sql,
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
   void out;
   console.log(
     revoke
-      ? `${email} is a plain admin again (if the account exists).`
-      : `${email} is a superadmin now (if the account exists).`
+      ? `${email} is a plain admin again.`
+      : `${email} is the installation's superadmin.`
   );
   // The role is read from the row on every request, so a session already open
   // picks this up on its next page load.
   console.log("Reload the app to see it.");
 } catch (error) {
-  console.error(`${error.stdout ?? ""}${error.stderr ?? ""}`.trim() || error.message);
+  const message = `${error.stdout ?? ""}${error.stderr ?? ""}`;
+  if (/P2002|User_single_superadmin|UNIQUE constraint failed: User.role/i.test(message)) {
+    console.error("Another account is already the superadmin. No role was changed.");
+  } else if (/cadence_role_target|CHECK constraint failed/i.test(message)) {
+    console.error("Account not found. No role was changed.");
+  } else {
+    console.error(message.trim() || error.message);
+  }
   process.exit(1);
 }
