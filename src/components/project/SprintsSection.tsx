@@ -146,7 +146,7 @@ export function SprintsSection({
         </Disclosure>
       )}
 
-      {adding && (
+      {canEdit && adding && (
         <SprintForm
           initial={suggested}
           onCancel={() => setAdding(false)}
