@@ -38,8 +38,10 @@ export async function moderateUser(
   actorId: string,
   targetId: string,
   action: AdminAction,
-  options: { reason?: string; confirmation?: string } = {},
+  options: { reason?: string } = {},
 ) {
+  if (!["BAN", "UNBAN", "REVOKE_SESSIONS"].includes(action))
+    throw new AdminActionError("Invalid action", 400);
   return prisma.$transaction(
     async (tx) => {
       const actor = await tx.user.findUnique({
@@ -55,16 +57,6 @@ export async function moderateUser(
       if (!target) throw new AdminActionError("Account not found", 404);
       if (target.id === actorId || target.role === "SUPERADMIN")
         throw new AdminActionError("The superadmin account is protected", 409);
-      if (
-        action === "DELETE" &&
-        options.confirmation?.trim().toLowerCase() !== target.email
-      ) {
-        throw new AdminActionError(
-          "Type the account's email to confirm deletion",
-          400,
-        );
-      }
-
       // Session removal and access changes commit together. Workspace members
       // lose sessions too; auth additionally checks the owner's ban on every read.
       if (action !== "UNBAN") {
@@ -98,16 +90,6 @@ export async function moderateUser(
           reason: action === "BAN" ? options.reason || null : null,
         },
       });
-      if (action === "DELETE") {
-        const deleted = await tx.user.deleteMany({
-          where: { id: targetId, role: "ADMIN" },
-        });
-        if (deleted.count !== 1)
-          throw new AdminActionError(
-            "The account can no longer be deleted",
-            409,
-          );
-      }
       return { ok: true };
     },
     { timeout: 20000, maxWait: 10000 },

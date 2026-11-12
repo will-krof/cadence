@@ -346,9 +346,9 @@ There is no impersonation or access to another account's project contents.
   and ends their sessions. **Restore access** permits a fresh sign-in.
 - **Sign out everywhere** ends current owner/member sessions without blocking a
   fresh sign-in.
-- **Delete** requires typing the email, then permanently removes the account and
-  its workspace data through database cascades. The email can register again;
-  banning is the option for keeping access blocked.
+- User deletion is unavailable to the superadmin, both in the interface and API.
+  The former DELETE endpoint returns 405 and PATCH rejects a DELETE action.
+  A compromised superadmin session cannot use moderation to erase workspaces.
 - The superadmin cannot ban or delete themselves, including through account
   settings. The panel cannot grant the superadmin role.
 
@@ -483,4 +483,4 @@ TEST_DATABASE_URL=postgresql://localhost:5432/cadence_admin_test_example npm run
 
 The test refuses non-local hosts and other database names. It creates fake
 accounts, promotes a test operator and exercises ban, session revocation and
-permanent deletion. Never point it at a shared or production database.
+deletion rejection and data preservation. Never point it at a shared or production database.

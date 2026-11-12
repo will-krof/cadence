@@ -1,4 +1,4 @@
-export type AdminAction = "BAN" | "UNBAN" | "REVOKE_SESSIONS" | "DELETE";
+export type AdminAction = "BAN" | "UNBAN" | "REVOKE_SESSIONS";
 
 export interface ManagedUser {
   id: string;
@@ -25,7 +25,7 @@ export interface RegistrationSeries {
 
 export interface AuditEntry {
   id: string;
-  action: AdminAction;
+  action: string;
   createdAt: string;
   reason: string | null;
   target: { email: string; name: string | null } | null;

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AdminActionError, moderateUser, requireSuperadmin } from "@/lib/admin";
 
-async function act(
+export async function PATCH(
   request: NextRequest,
   ctx: RouteContext<"/api/admin/users/[id]">,
-  deleting: boolean,
 ) {
   const { user, response } = await requireSuperadmin();
   if (response) return response;
@@ -13,15 +12,8 @@ async function act(
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: "Provide an action" }, { status: 400 });
   }
-  const action = deleting ? "DELETE" : body.action;
-  if (
-    ![
-      "BAN",
-      "UNBAN",
-      "REVOKE_SESSIONS",
-      ...(deleting ? ["DELETE"] : []),
-    ].includes(action)
-  ) {
+  const action = body.action;
+  if (!["BAN", "UNBAN", "REVOKE_SESSIONS"].includes(action)) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
   if (
@@ -36,8 +28,6 @@ async function act(
   try {
     const result = await moderateUser(user.id, id, action, {
       reason: body.reason?.trim(),
-      confirmation:
-        typeof body.confirmation === "string" ? body.confirmation : "",
     });
     return NextResponse.json(result);
   } catch (error) {
@@ -52,17 +42,4 @@ async function act(
       { status: 500 },
     );
   }
-}
-
-export async function PATCH(
-  request: NextRequest,
-  ctx: RouteContext<"/api/admin/users/[id]">,
-) {
-  return act(request, ctx, false);
-}
-export async function DELETE(
-  request: NextRequest,
-  ctx: RouteContext<"/api/admin/users/[id]">,
-) {
-  return act(request, ctx, true);
 }

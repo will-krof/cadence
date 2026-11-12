@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 const dead = () =>
   NextResponse.json(
     { error: "This invite link is no longer valid" },
-    { status: 404 }
+    { status: 404 },
   );
 
 /**
@@ -24,7 +24,7 @@ const dead = () =>
  */
 export async function POST(
   request: NextRequest,
-  ctx: RouteContext<"/api/invites/[token]">
+  ctx: RouteContext<"/api/invites/[token]">,
 ) {
   // A token is 24 random bytes, so guessing one is hopeless — but a limit costs
   // nothing and takes hopeless down to pointless.
@@ -40,12 +40,16 @@ export async function POST(
   if (password.length > LIMITS.password) {
     return NextResponse.json(
       { error: `Password must be ${LIMITS.password} characters or fewer` },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const member = await prisma.projectMember.findFirst({
-    where: { inviteToken: token, inviteRevoked: false, project: { user: { bannedAt: null } } },
+    where: {
+      inviteToken: token,
+      inviteRevoked: false,
+      project: { user: { bannedAt: null } },
+    },
     select: {
       id: true,
       inviteExpiresAt: true,
@@ -69,7 +73,7 @@ export async function POST(
         error:
           "This link has expired. A new one has been made — ask for it and try again.",
       },
-      { status: 410 }
+      { status: 410 },
     );
   }
 
@@ -78,7 +82,7 @@ export async function POST(
   if (member.developer.username) {
     return NextResponse.json(
       { error: "You already have a login — sign in with it instead." },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
@@ -98,29 +102,55 @@ export async function POST(
   if (taken) {
     return NextResponse.json(
       { error: "That username is taken — try another" },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
-  // The check above and this write aren't one step, so two people picking the
-  // same name at the same moment is decided here, by the unique index — and it
-  // reads as "taken" rather than as something going wrong.
+  // Claim the login once. Two requests holding the same invitation must not
+  // overwrite each other's credentials after both pass the earlier read.
+  const passwordHash = await hashPassword(password);
   try {
-    await prisma.developer.update({
-      where: { id: member.developer.id },
-      data: { username, passwordHash: await hashPassword(password) },
+    const claimed = await prisma.$transaction(async (tx) => {
+      const result = await tx.developer.updateMany({
+        where: {
+          id: member.developer.id,
+          active: true,
+          username: null,
+          user: { bannedAt: null },
+          memberships: {
+            some: {
+              id: member.id,
+              inviteToken: token,
+              inviteRevoked: false,
+              OR: [
+                { inviteExpiresAt: null },
+                { inviteExpiresAt: { gt: new Date() } },
+              ],
+            },
+          },
+        },
+        data: { username, passwordHash },
+      });
+      if (result.count !== 1) return false;
+      await tx.projectMember.update({
+        where: { id: member.id },
+        data: { inviteUsedAt: new Date() },
+      });
+      return true;
     });
+    if (!claimed)
+      return NextResponse.json(
+        {
+          error: "This invitation has already been used or is no longer valid",
+        },
+        { status: 409 },
+      );
   } catch {
     return NextResponse.json(
       { error: "That username is taken — try another" },
-      { status: 409 }
+      { status: 409 },
     );
   }
-  // The link is spent, and saying when it was taken up is worth keeping.
-  await prisma.projectMember.update({
-    where: { id: member.id },
-    data: { inviteUsedAt: new Date() },
-  });
 
   await createMemberSession(member.developer.id);
 

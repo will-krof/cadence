@@ -16,9 +16,8 @@ const ACTION_NAMES: Record<AdminAction, string> = {
   BAN: "Ban account",
   UNBAN: "Restore access",
   REVOKE_SESSIONS: "Sign out everywhere",
-  DELETE: "Delete account",
 };
-const AUDIT_NAMES: Record<AdminAction, string> = {
+const AUDIT_NAMES: Record<string, string> = {
   BAN: "Banned",
   UNBAN: "Access restored",
   REVOKE_SESSIONS: "Sessions revoked",
@@ -63,7 +62,6 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
     action: AdminAction;
   } | null>(null);
   const [reason, setReason] = useState("");
-  const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
 
@@ -134,7 +132,6 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
   function choose(user: ManagedUser, action: AdminAction) {
     setSelected({ user, action });
     setReason("");
-    setConfirmation("");
     setActionError("");
   }
   async function submit(event: React.FormEvent) {
@@ -146,12 +143,11 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
       const response = await fetch(
         `/api/admin/users/${encodeURIComponent(selected.user.id)}`,
         {
-          method: selected.action === "DELETE" ? "DELETE" : "PATCH",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: selected.action,
             reason,
-            confirmation,
           }),
         },
       );
@@ -361,15 +357,6 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
                           >
                             Sign out everywhere
                           </button>
-                          <button
-                            type="button"
-                            className="btn-secondary !text-[var(--danger)]"
-                            disabled={busy || loading}
-                            aria-label={`Delete ${user.email}`}
-                            onClick={() => choose(user, "DELETE")}
-                          >
-                            Delete
-                          </button>
                         </div>
                       )}
                     </td>
@@ -470,13 +457,11 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
               {selected.user.email}
             </p>
             <p className="text-[0.8125rem] leading-relaxed text-[var(--ink-secondary)]">
-              {selected.action === "DELETE"
-                ? "Permanently deletes this account and its workspace, including projects, tasks, team profiles and notes. This cannot be undone. The email can register again; use a ban to keep access blocked."
-                : selected.action === "BAN"
-                  ? "Blocks access to this account and its workspace. The owner and invited team members are signed out. Their data is kept."
-                  : selected.action === "UNBAN"
-                    ? "Restores sign-in to this account and its workspace. Previously revoked sessions remain signed out."
-                    : "Ends current sessions for this account and its invited team members. They can sign in again."}
+              {selected.action === "BAN"
+                ? "Blocks access to this account and its workspace. The owner and invited team members are signed out. Their data is kept."
+                : selected.action === "UNBAN"
+                  ? "Restores sign-in to this account and its workspace. Previously revoked sessions remain signed out."
+                  : "Ends current sessions for this account and its invited team members. They can sign in again."}
             </p>
             {selected.action === "BAN" && (
               <Field label="Reason (optional)">
@@ -487,19 +472,6 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
                   onChange={(event) => setReason(event.target.value)}
                   maxLength={500}
                   placeholder="Why is this account being banned?"
-                />
-              </Field>
-            )}
-            {selected.action === "DELETE" && (
-              <Field label="Type the email to confirm">
-                <input
-                  autoFocus
-                  className="input"
-                  value={confirmation}
-                  onChange={(event) => setConfirmation(event.target.value)}
-                  placeholder={selected.user.email}
-                  autoComplete="off"
-                  spellCheck={false}
                 />
               </Field>
             )}
@@ -520,15 +492,9 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
               <button
                 type="submit"
                 className={
-                  selected.action === "DELETE" || selected.action === "BAN"
-                    ? "btn-danger"
-                    : "btn-primary"
+                  selected.action === "BAN" ? "btn-danger" : "btn-primary"
                 }
-                disabled={
-                  busy ||
-                  (selected.action === "DELETE" &&
-                    confirmation.trim().toLowerCase() !== selected.user.email)
-                }
+                disabled={busy}
               >
                 {busy ? "Working…" : ACTION_NAMES[selected.action]}
               </button>

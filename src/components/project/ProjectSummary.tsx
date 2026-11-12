@@ -112,7 +112,10 @@ export function ProjectSummary({
         )}
       </section>
 
-      <section className="flex flex-col gap-2.5" aria-label="Project people">
+      <section
+        className="card flex flex-col gap-4 p-4"
+        aria-label="Project people"
+      >
         <h3 className="text-[0.8125rem] font-semibold">People</h3>
         {loading ? (
           <p className="text-[0.75rem] text-[var(--ink-muted)]">Loading…</p>
@@ -121,7 +124,7 @@ export function ProjectSummary({
             Nobody on this project yet.
           </p>
         ) : (
-          <ul className="flex flex-col gap-1.5">
+          <ul className="divide-y divide-[var(--hairline)]">
             {people.map((person) => {
               const membership = membershipOf.get(person.id);
               const held = project.hasRoles
@@ -132,7 +135,7 @@ export function ProjectSummary({
               return (
                 <li
                   key={person.id}
-                  className="flex flex-wrap items-center gap-2 rounded-[var(--radius)] border border-[var(--hairline)] px-3 py-2"
+                  className="flex flex-wrap items-center gap-2 py-3 first:pt-0 last:pb-0"
                 >
                   <Avatar person={person} size={24} />
                   <span className="min-w-0 flex-1 break-words text-[0.8125rem]">
@@ -156,7 +159,10 @@ export function ProjectSummary({
       </section>
 
       {project.hasRoles && (
-        <section className="flex flex-col gap-2.5" aria-label="Project roles">
+        <section
+          className="card flex flex-col gap-4 p-4"
+          aria-label="Project roles"
+        >
           <h3 className="text-[0.8125rem] font-semibold">Roles</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[0.75rem]">
