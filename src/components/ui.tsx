@@ -686,6 +686,19 @@ export function Stat({
   );
 }
 
+function SelectChevron() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-[var(--ink-muted)]"
+      viewBox="0 0 16 16"
+      fill="none"
+    >
+      <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function ColumnPill({
   columnId,
   columns,
@@ -748,6 +761,7 @@ export function ColumnPill({
         }}
         ariaLabel="Tracker column"
       />
+      <SelectChevron />
     </div>
   );
 }
@@ -805,6 +819,7 @@ export function PrioritySelect({
           </option>
         ))}
       </select>
+      <SelectChevron />
     </div>
   );
 }

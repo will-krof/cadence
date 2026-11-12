@@ -210,6 +210,7 @@ export function AccountPanel() {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 className="input"
                 autoComplete="current-password"
+                placeholder="Enter your current password"
               />
             </Field>
             <Field label="New password" className="flex-1">

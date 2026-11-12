@@ -51,6 +51,10 @@ export function MarkupToolbar({
         <button
           key={mark.label}
           type="button"
+          // Safari does not focus buttons on pointer clicks. Without this,
+          // textarea blur has no relatedTarget and Notes switches to preview
+          // before the click can apply formatting. Keep selection and focus.
+          onPointerDown={(e) => e.preventDefault()}
           onClick={() => apply(mark)}
           disabled={preview}
           className="rounded-[var(--radius)] border border-[var(--hairline)] px-2 py-1 text-[0.6875rem] text-[var(--ink-secondary)] transition hover:border-[var(--baseline)] hover:text-[var(--ink)] disabled:cursor-not-allowed disabled:opacity-40"

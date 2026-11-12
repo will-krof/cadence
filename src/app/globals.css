@@ -240,7 +240,12 @@ textarea:focus-visible {
   }
 
   .select-with-dot {
-    padding-inline-start: 1.75rem;
+    /* WebKit's native menulist can ignore horizontal padding. Render the
+       control ourselves so its label always clears the marker and chevron. */
+    -webkit-appearance: none;
+    appearance: none;
+    padding-left: 1.75rem;
+    padding-right: 1.75rem;
   }
 
   .input::placeholder {
