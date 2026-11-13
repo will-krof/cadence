@@ -173,7 +173,7 @@ export function BugReportInbox() {
                 </div>
                 <select
                   aria-label={`Status for ${ticket.subject}`}
-                  className={`select !w-auto ${ticket.status === "RESOLVED" ? "status-live" : ticket.status === "IN_PROGRESS" ? "status-dev" : "status-stage"}`}
+                  className="select !w-auto"
                   value={ticket.status}
                   disabled={busy || loading}
                   onChange={(event) =>

@@ -456,7 +456,7 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
       <header className="brand-header flex shrink-0 items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-4">
           <Wordmark />
-          <span className="brand-caption hidden border-l border-[var(--hairline)] pl-4 text-[0.625rem] font-bold uppercase tracking-[0.16em] sm:block">
+          <span className="brand-caption hidden border-l border-[#475665] pl-4 text-[0.625rem] font-bold uppercase tracking-[0.16em] sm:block">
             Workspace
           </span>
         </div>
@@ -801,7 +801,7 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
           )}
         </nav>
 
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--plane)]">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--surface)]">
           {loading ? (
             <Centered>Loading…</Centered>
           ) : showingNotes ? (

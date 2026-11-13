@@ -360,7 +360,7 @@ export function TrackerBoard({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-end gap-3 border-b border-[var(--hairline)] bg-[var(--surface)] px-4 py-3 sm:px-6">
+      <div className="flex flex-wrap items-end gap-3 border-b border-[var(--hairline)] px-4 py-3 sm:px-6">
         {/* Only where the work is planned in rounds. */}
         {activeProject?.hasSprints !== false && (
           <SprintPicker
@@ -413,7 +413,7 @@ export function TrackerBoard({
                 className={`flex w-[17rem] shrink-0 flex-col rounded-[var(--radius-lg)] border transition-colors ${
                   isTarget && col.column
                     ? "border-[var(--accent)] bg-[var(--accent-wash)]"
-                    : "border-[var(--hairline)] bg-[var(--surface)]"
+                    : "border-[var(--hairline)] bg-[var(--plane)]"
                 }`}
               >
                 <ColumnHeader
@@ -833,7 +833,7 @@ function AddColumn({
   }
 
   return (
-    <section className="flex w-[17rem] shrink-0 flex-col rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface)]">
+    <section className="flex w-[17rem] shrink-0 flex-col rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--plane)]">
       <header className="flex items-center gap-2 border-b border-[var(--hairline)] px-3 py-2.5">
         <h3 className="text-[0.75rem] font-semibold tracking-tight">
           New column
@@ -885,7 +885,7 @@ function EmptyBoard({
 
   return (
     <div className="thin-scroll flex flex-1 items-start justify-center overflow-y-auto p-6">
-      <div className="flex w-full max-w-md flex-col gap-4 rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface)] p-5">
+      <div className="flex w-full max-w-md flex-col gap-4 rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--plane)] p-5">
         <div>
           <h2 className="text-[0.9375rem] font-semibold tracking-tight">
             This tracker has no columns yet
@@ -1077,9 +1077,9 @@ const TaskCard = memo(function TaskCard({
       onClick={handleClick}
       // A column can hold hundreds of cards; this lets the browser skip
       // rendering the ones scrolled out of view, at their reserved height.
-      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 132px", borderLeftColor: columns.find((column) => column.id === task.columnId)?.color ?? UNSORTED_COLOR }}
+      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 132px" }}
       // touch-none keeps a touch drag from scrolling the column instead.
-      className={`group touch-none rounded-[var(--radius)] border border-l-[5px] border-[var(--hairline)] bg-[var(--surface-raised)] p-2.5 shadow-sm transition select-none ${
+      className={`group touch-none rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--surface-raised)] p-2.5 shadow-sm transition select-none ${
         dragging
           ? "opacity-40"
           : canEdit

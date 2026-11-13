@@ -17,9 +17,9 @@ own columns, colours and workflow in a focused workspace.
 
 <br />
 
-<img src="docs/screenshots/cadence-timeline.webp" alt="Cadence timeline (earlier visual appearance)" width="100%" />
+<img src="docs/screenshots/cadence-timeline.webp" alt="Cadence timeline in the refreshed navy, lime and light workspace design" width="100%" />
 
-<sub>Neutral panels, clear status colors and compact workspace views. <a href="docs/visual-style.md">Visual style guide</a>.</sub>
+<sub>Part of the same design family as <a href="https://github.com/will-krof/sketchspace">Sketchspace</a>.</sub>
 
 </div>
 
@@ -487,7 +487,7 @@ A database created after this was written never meets it.
 <br />
 
 <div align="center">
-<sub>Screenshots show fictional demo data and an earlier appearance. The current interface uses neutral cards and pastel statuses; see <a href="docs/visual-style.md">the visual style guide</a>.</sub>
+<sub>Screenshots show fictional demo data. Cadence and Sketchspace share a visual language while serving different workflows.</sub>
 </div>
 
 ### Admin integration checks
