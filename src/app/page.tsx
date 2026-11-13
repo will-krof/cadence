@@ -31,14 +31,14 @@ export default async function LandingPage() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl px-5 pb-16 sm:px-8">
-        <section className="py-14 sm:py-20">
+        <section className="card my-8 p-6 sm:my-10 sm:p-8">
           <p className="mb-3 text-[0.75rem] font-medium uppercase tracking-wider text-[var(--accent)]">
             Timeline, tracker, wiki, reports and team in one
           </p>
-          <h1 className="max-w-2xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">
+          <h1 className="max-w-2xl text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
             Plan the sprint. Then watch it move.
           </h1>
-          <p className="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-[var(--ink-secondary)]">
+          <p className="mt-5 max-w-xl text-sm leading-relaxed text-[var(--ink-secondary)]">
             Cadence gives every project a Gantt timeline and a kanban tracker
             over the same tasks — so scheduling and day-to-day progress never
             drift apart. The board is yours to name: columns you write, colour

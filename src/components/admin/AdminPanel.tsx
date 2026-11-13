@@ -317,7 +317,7 @@ export function AdminPanel({ currentUserId }: { currentUserId: string }) {
                     </td>
                     <td className="py-3 pr-4">
                       <span
-                        className={`chip ${user.bannedAt ? "text-[var(--danger)]" : "text-[var(--accent)]"}`}
+                        className={`chip status-dot ${user.bannedAt ? "status-off" : "status-live"}`}
                       >
                         {user.bannedAt ? "Banned" : "Active"}
                       </span>
