@@ -4,55 +4,29 @@
   color-scheme: dark;
   --priority-medium: #79c0ff;
 
-  --surface: #2c2d2f;
-  --plane: #292929;
-  --surface-raised: #343638;
+  --surface: #26323f;
+  --plane: #17212b;
+  --surface-raised: #2e3b49;
 
-  --ink: #f2f2f2;
-  --ink-secondary: #cccccc;
-  --ink-muted: #aaaaaa;
+  --ink: #f5f8fa;
+  --ink-secondary: #c7d2d9;
+  --ink-muted: #a2b0bb;
 
-  --hairline: #4a4c4e;
-  --gridline: #353638;
-  --baseline: #707274;
+  --hairline: #475665;
+  --gridline: #34404d;
+  --baseline: #5b6b78;
 
-  --accent: #ffd51a;
-  --accent-bright: #ffd51a;
-  --accent-wash: #403b20;
-  --accent-contrast: #191600;
-  --accent-on: #191600;
+  --accent: #e4f47a;
+  --accent-bright: #e4f47a;
+  --accent-wash: #39462e;
+  --accent-contrast: #17212b;
+  --accent-on: #17212b;
 
-  --danger: #ff8067;
-  --danger-wash: #4b2924;
+  --danger: #e56a6a;
+  --danger-wash: rgba(229, 106, 106, 0.14);
 
-  --radius: 0.3125rem;
-  --radius-lg: 0.5rem;
-  --control-gradient: linear-gradient(
-    180deg,
-    #414345 0%,
-    #2a2c2e 45%,
-    #141618 100%
-  );
-  --control-hover: linear-gradient(
-    180deg,
-    #505255 0%,
-    #343638 45%,
-    #1c1e20 100%
-  );
-  --gold-gradient: linear-gradient(
-    180deg,
-    #ffe254 0%,
-    #ffd21a 48%,
-    #d2ab00 100%
-  );
-  --gold-hover: linear-gradient(180deg, #ffec86 0%, #ffdd36 48%, #e1bb09 100%);
-  --panel-gradient: linear-gradient(180deg, #343638 0%, #2b2d2f 100%);
-  --bevel-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 12%), inset 0 -1px 0 rgb(0 0 0 / 35%),
-    0 0 0 1px #424446, 0 2px 4px rgb(0 0 0 / 45%);
-  --panel-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 8%), 0 0 0 1px #414345,
-    0 3px 8px rgb(0 0 0 / 30%);
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
   --background: var(--plane);
   --foreground: var(--ink);
 }
@@ -85,18 +59,35 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Graphite chrome and beveled controls inspired by the supplied UI sheet. */
+/* Shared Sketchspace family chrome. The dark band anchors every entry point;
+   the light workspace and lime action carry the same cues into the app. */
 .brand-header {
-  background: linear-gradient(180deg, #202122, #151617);
-  color: var(--ink);
-  border-bottom: 1px solid #101112;
-  box-shadow: 0 1px 0 #404244;
+  background: #17212b;
+  color: #fff;
+  border-bottom: 1px solid #34404d;
 }
+
+.brand-header .btn-secondary {
+  border-color: #475665;
+  background: #26323f;
+  color: #dbe3e8;
+}
+
+.brand-header .btn-secondary:hover,
+.brand-header button[aria-haspopup="menu"]:hover {
+  background: #354350;
+}
+
+.brand-header button[aria-haspopup="menu"] {
+  border-color: #475665;
+}
+
 .brand-header [role="menu"] {
   color: var(--ink);
 }
+
 .brand-header .brand-caption {
-  color: var(--ink-muted);
+  color: #a7b7c2;
 }
 
 button:focus-visible,
@@ -104,7 +95,7 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid #a6c425;
   outline-offset: 2px;
 }
 
@@ -151,9 +142,9 @@ textarea:focus-visible {
 
   .card {
     border-radius: var(--radius-lg);
-    border: 1px solid #161718;
-    background: var(--panel-gradient);
-    box-shadow: var(--panel-shadow);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    box-shadow: 0 2px 12px #17212b08;
   }
 
   .chip {
@@ -162,12 +153,7 @@ textarea:focus-visible {
     gap: 0.25rem;
     border-radius: 999px;
     border: 1px solid var(--hairline);
-    padding: 0.125rem 0.5rem;
-    background: var(--control-gradient);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 8%),
-      0 1px 2px rgb(0 0 0 / 30%);
-    text-shadow: 0 1px 1px #000;
+    padding: 0.0625rem 0.5rem;
     font-size: 0.6875rem;
     line-height: 1.5;
     color: var(--ink-secondary);
@@ -175,8 +161,8 @@ textarea:focus-visible {
   }
 
   .chip-accent {
-    border-color: #6b5b1c;
-    background: linear-gradient(180deg, #494126, #2c291b);
+    border-color: transparent;
+    background: var(--accent-wash);
     color: var(--accent);
   }
 
@@ -187,10 +173,7 @@ textarea:focus-visible {
     width: 100%;
     border-radius: var(--radius);
     border: 1px solid var(--hairline);
-    background: linear-gradient(180deg, #17191b, #242628);
-    box-shadow:
-      inset 0 2px 4px rgb(0 0 0 / 55%),
-      0 1px 0 rgb(255 255 255 / 7%);
+    background: var(--surface-raised);
     color: var(--ink);
     padding: 0.4375rem 0.625rem;
     font-size: 0.8125rem;
@@ -217,9 +200,7 @@ textarea:focus-visible {
   .input:focus-visible,
   .select:focus-visible {
     border-color: var(--accent);
-    box-shadow:
-      inset 0 2px 4px rgb(0 0 0 / 45%),
-      0 0 0 2px rgb(255 213 26 / 20%);
+    box-shadow: 0 0 0 3px var(--accent-wash);
   }
 
   .field-label {
@@ -241,53 +222,43 @@ textarea:focus-visible {
     white-space: nowrap;
     cursor: pointer;
     transition:
-      filter 0.15s ease,
-      box-shadow 0.15s ease,
+      background-color 0.15s ease,
+      border-color 0.15s ease,
       opacity 0.15s ease;
-    box-shadow: var(--bevel-shadow);
   }
 
   .btn-primary {
-    background: var(--gold-gradient);
+    background: var(--accent-bright);
     color: var(--accent-contrast);
-    border: 1px solid #8e7300;
-    box-shadow:
-      inset 0 1px 0 #fff2a8,
-      inset 0 -1px 0 #b08e00,
-      0 0 0 1px #4e4c3e,
-      0 2px 4px rgb(0 0 0 / 45%);
-    text-shadow: 0 1px 0 rgb(255 255 255 / 35%);
-    font-weight: 650;
+    border: 1px solid var(--accent-bright);
+    font-weight: 750;
   }
 
   .btn-primary:hover {
-    background: var(--gold-hover);
-    border-color: #b89400;
+    background: #f0ffa4;
+    border-color: #f0ffa4;
   }
 
   .btn-secondary {
-    background: var(--control-gradient);
+    background: var(--surface-raised);
     color: var(--ink);
-    border: 1px solid #121416;
-    text-shadow: 0 1px 1px #000;
+    border: 1px solid var(--hairline);
   }
 
   .btn-secondary:hover {
-    background: var(--control-hover);
-    color: var(--accent);
+    background: var(--accent-wash);
   }
 
   /* The one destructive button, so "this deletes something" looks the same
      wherever it is offered. */
   .btn-danger {
-    background: linear-gradient(180deg, #c53a2a, #8c211b);
+    background: var(--danger);
     color: #fff;
-    border: 1px solid #641d17;
-    text-shadow: 0 1px 1px #51120e;
+    border: 1px solid var(--danger);
   }
 
   .btn-danger:hover {
-    filter: brightness(1.05);
+    opacity: 0.88;
   }
 
   .btn-primary:disabled,
@@ -300,79 +271,61 @@ textarea:focus-visible {
   .btn-primary:focus-visible,
   .btn-secondary:focus-visible,
   .btn-danger:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 3px;
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-wash);
   }
 
-  /* Entry pages use the same charcoal canvas as the reference sheet. */
+  /* ---- Schematic backdrop ----
+     The pages outside the app — the landing page, logging in, signing up —
+     stand on drafting paper rather than a flat colour: a fine grid, a coarser
+     one over it, and a rule where the two meet. It is drawn from the ink
+     colour, so it is black on white and white on black without a second
+     definition, and it is CSS the whole way down: no image is fetched, and
+     there is none to store. */
+
   .schematic {
-    background: var(--plane);
+    position: relative;
+    isolation: isolate;
   }
 
-  .panel-raised {
-    background-image: var(--panel-gradient);
-    box-shadow: var(--panel-shadow);
-  }
-  .skeuo-nav {
-    border: 1px solid transparent;
-  }
-  .skeuo-nav:hover,
-  .skeuo-nav[aria-current="page"] {
-    background-image: var(--control-gradient);
-    border-color: #161718;
-    box-shadow: var(--bevel-shadow);
-    text-shadow: 0 1px 1px #000;
-  }
-  .skeuo-nav[aria-current="page"] {
-    color: var(--accent);
-  }
-  .skeuo-track {
-    background-image: linear-gradient(180deg, #202224, #282a2c);
-    box-shadow:
-      inset 0 1px 4px rgb(0 0 0 / 55%),
-      0 1px 0 rgb(255 255 255 / 7%);
-  }
-  .skeuo-task {
-    background-image: var(--panel-gradient);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 10%),
-      0 2px 4px rgb(0 0 0 / 40%);
-  }
-  .btn-primary:active:not(:disabled),
-  .btn-secondary:active:not(:disabled),
-  .btn-danger:active:not(:disabled) {
-    transform: translateY(1px);
-    box-shadow:
-      inset 0 2px 5px rgb(0 0 0 / 60%),
-      0 1px 0 rgb(255 255 255 / 10%);
-  }
-  input[type="checkbox"],
-  input[type="radio"],
-  input[type="range"] {
-    accent-color: var(--accent);
-  }
-
-  .toast {
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 35%),
-      0 0 0 1px #383a3c,
-      0 3px 8px rgb(0 0 0 / 40%);
-    text-shadow: 0 1px 0 rgb(255 255 255 / 20%);
-  }
-  .toast-success {
-    background: linear-gradient(180deg, #68df85, #2dbb4d);
-    color: #081c0d;
-    border-color: #217534;
-  }
-  .toast-error {
-    background: linear-gradient(180deg, #ff7045, #e2472a);
-    color: #260b05;
-    border-color: #8e291b;
-  }
-  .toast-info {
-    background: linear-gradient(180deg, #73d3f2, #3598d1);
-    color: #071b26;
-    border-color: #1d628a;
+  .schematic::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      /* the coarse grid */
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--ink) 14%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--ink) 14%, transparent) 1px,
+        transparent 1px
+      ),
+      /* and the fine one inside it */
+        linear-gradient(
+          to right,
+          color-mix(in srgb, var(--ink) 6%, transparent) 1px,
+          transparent 1px
+        ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--ink) 6%, transparent) 1px,
+        transparent 1px
+      );
+    background-size:
+      8rem 8rem,
+      8rem 8rem,
+      1rem 1rem,
+      1rem 1rem;
+    background-position: center top;
+    /* Fades out down the page, so the grid frames the top of a screen rather
+       than running under everything on it. */
+    mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
   }
 
   /* ---- Scrollbars ---- */
@@ -383,15 +336,13 @@ textarea:focus-visible {
   }
 
   .thin-scroll::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #ffe254, #c7a200);
+    background: var(--baseline);
     border-radius: 999px;
     border: 3px solid transparent;
     background-clip: content-box;
   }
 
   .thin-scroll::-webkit-scrollbar-track {
-    background: #181a1c;
-    border-radius: 999px;
-    box-shadow: inset 0 1px 3px #000;
+    background: transparent;
   }
 }

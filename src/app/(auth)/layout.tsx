@@ -19,7 +19,7 @@ export default async function AuthLayout({
         </Link>
       </header>
       <main className="flex flex-1 items-start justify-center px-5 py-8 sm:items-center sm:py-12">
-        <div className="card w-full max-w-sm p-6">
+        <div className="w-full max-w-sm rounded-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface)] p-6 shadow-sm">
           {children}
         </div>
       </main>

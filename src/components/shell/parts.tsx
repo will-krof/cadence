@@ -22,7 +22,7 @@ export function ViewButton({
       onClick={onClick}
       aria-current={active ? "page" : undefined}
       title={label}
-      className={`skeuo-nav flex flex-1 items-center gap-2.5 rounded-[var(--radius)] py-2 text-[0.8125rem] font-medium transition ${
+      className={`flex flex-1 items-center gap-2.5 rounded-[var(--radius)] py-2 text-[0.8125rem] font-medium transition ${
         wide ? "px-3" : "justify-center px-2"
       } ${
         active
