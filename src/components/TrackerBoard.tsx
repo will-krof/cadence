@@ -410,7 +410,7 @@ export function TrackerBoard({
               <section
                 key={col.key}
                 data-column={col.key}
-                className={`flex w-[17rem] shrink-0 flex-col rounded-[var(--radius-lg)] border transition-colors ${
+                className={`skeuo-track flex w-[17rem] shrink-0 flex-col rounded-[var(--radius-lg)] border transition-colors ${
                   isTarget && col.column
                     ? "border-[var(--accent)] bg-[var(--accent-wash)]"
                     : "border-[var(--hairline)] bg-[var(--plane)]"
@@ -1079,7 +1079,7 @@ const TaskCard = memo(function TaskCard({
       // rendering the ones scrolled out of view, at their reserved height.
       style={{ contentVisibility: "auto", containIntrinsicSize: "auto 132px" }}
       // touch-none keeps a touch drag from scrolling the column instead.
-      className={`group touch-none rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--surface-raised)] p-2.5 shadow-sm transition select-none ${
+      className={`skeuo-task group touch-none rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--surface-raised)] p-2.5 transition select-none ${
         dragging
           ? "opacity-40"
           : canEdit

@@ -100,14 +100,13 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
           <div
             key={t.id}
             role={t.kind === "error" ? "alert" : "status"}
-            className="pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-[var(--radius-lg)] border bg-[var(--surface-raised)] px-3.5 py-2.5 shadow-lg"
-            style={{ borderColor: toneBorder(t.kind) }}
+            className={`toast toast-${t.kind} pointer-events-auto flex w-full max-w-sm items-start gap-2.5 rounded-[var(--radius)] border px-3.5 py-2.5`}
           >
             <ToastIcon kind={t.kind} />
             <p className="flex-1 text-[0.8125rem] leading-snug">{t.message}</p>
             <button
               onClick={() => dismiss(t.id)}
-              className="shrink-0 rounded p-0.5 text-[var(--ink-muted)] transition hover:text-[var(--ink)]"
+              className="shrink-0 rounded p-0.5 text-current opacity-75 transition hover:opacity-100"
               aria-label="Dismiss"
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -129,7 +128,7 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
           onClick={() => settle(false)}
         >
           <div
-            className="w-full rounded-t-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface-raised)] p-5 shadow-xl sm:max-w-sm sm:rounded-[var(--radius-lg)]"
+            className="panel-raised w-full rounded-t-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface-raised)] p-5 sm:max-w-sm sm:rounded-[var(--radius-lg)]"
             onClick={(e) => e.stopPropagation()}
             role="alertdialog"
             aria-modal="true"
@@ -167,17 +166,11 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-function toneBorder(kind: ToastKind) {
-  if (kind === "success") return "color-mix(in srgb, #0ca30c 45%, transparent)";
-  if (kind === "error") return "color-mix(in srgb, var(--danger) 45%, transparent)";
-  return "var(--hairline)";
-}
-
 function ToastIcon({ kind }: { kind: ToastKind }) {
   if (kind === "success") {
     return (
       <svg width="16" height="16" viewBox="0 0 16 16" className="mt-px shrink-0">
-        <circle cx="8" cy="8" r="7" fill="#0ca30c" />
+        <circle cx="8" cy="8" r="7" fill="#167b31" />
         <path
           d="M4.8 8.3l2.1 2.1 4.3-4.5"
           stroke="#fff"
@@ -192,7 +185,7 @@ function ToastIcon({ kind }: { kind: ToastKind }) {
   if (kind === "error") {
     return (
       <svg width="16" height="16" viewBox="0 0 16 16" className="mt-px shrink-0">
-        <circle cx="8" cy="8" r="7" fill="var(--danger)" />
+        <circle cx="8" cy="8" r="7" fill="#9f241a" />
         <path
           d="M8 4.4v4.2M8 11.1v.5"
           stroke="#fff"
@@ -204,7 +197,7 @@ function ToastIcon({ kind }: { kind: ToastKind }) {
   }
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" className="mt-px shrink-0">
-      <circle cx="8" cy="8" r="7" fill="var(--accent)" />
+      <circle cx="8" cy="8" r="7" fill="#0d6597" />
       <path
         d="M8 7.2v4.3M8 4.6v.5"
         stroke="#fff"

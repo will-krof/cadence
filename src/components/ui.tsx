@@ -953,7 +953,7 @@ export function Modal({
       onClick={onClose}
     >
       <div
-        className={`thin-scroll w-full overflow-y-auto rounded-t-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface-raised)] p-5 shadow-xl sm:rounded-[var(--radius-lg)] ${
+        className={`panel-raised thin-scroll w-full overflow-y-auto rounded-t-[var(--radius-lg)] border border-[var(--hairline)] bg-[var(--surface-raised)] p-5 sm:rounded-[var(--radius-lg)] ${
           size === "ask" ? "" : "sm:p-6"
         } ${MODAL_WIDTHS[size]}`}
         onClick={(e) => e.stopPropagation()}

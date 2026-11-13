@@ -17,9 +17,9 @@ own columns, colours and workflow in a focused workspace.
 
 <br />
 
-<img src="docs/screenshots/cadence-timeline.webp" alt="Cadence timeline in the refreshed navy, lime and light workspace design" width="100%" />
+<img src="docs/screenshots/cadence-timeline.webp" alt="Cadence timeline (earlier appearance)" width="100%" />
 
-<sub>Part of the same design family as <a href="https://github.com/will-krof/sketchspace">Sketchspace</a>.</sub>
+<sub>Dark graphite workspace with beveled controls and yellow accents. <a href="docs/ui-style.md">UI style guide</a>.</sub>
 
 </div>
 
@@ -116,7 +116,7 @@ Cadence design.
 <td colspan="2"><img src="docs/screenshots/cadence-dark.webp" alt="Cadence timeline in the navy dark theme" /></td>
 </tr>
 <tr>
-<td colspan="2"><b>Dark theme.</b> The navy palette is used throughout the app. No theme switch is offered.</td>
+<td colspan="2"><b>Dark theme.</b> The current graphite and yellow palette is used throughout the app. No theme switch is offered.</td>
 </tr>
 </table>
 
@@ -487,7 +487,7 @@ A database created after this was written never meets it.
 <br />
 
 <div align="center">
-<sub>Screenshots show fictional demo data. Cadence and Sketchspace share a visual language while serving different workflows.</sub>
+<sub>Screenshots show fictional demo data. These images show an earlier appearance; the current UI uses graphite surfaces and yellow beveled controls.</sub>
 </div>
 
 ### Admin integration checks
