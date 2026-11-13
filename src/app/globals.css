@@ -1,73 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: light;
-  --priority-medium: #2269b4;
-
-  /* Surfaces */
-  --surface: #ffffff;
-  --plane: #eef1f3;
-  --surface-raised: #ffffff;
-
-  /* Ink */
-  --ink: #1c2935;
-  --ink-secondary: #52616d;
-  --ink-muted: #768793;
-
-  /* Lines */
-  --hairline: #dce2e6;
-  --gridline: #d3dde2;
-  --baseline: #b4c1c9;
-
-  /* Accents */
-  --accent: #617b1c;
-  --accent-bright: #e4f47a;
-  --accent-wash: #f1f7d8;
-  --accent-contrast: #17212b;
-  --accent-on: #ffffff;
-
-  /* The one red. Deleting, and warning about deleting, was a literal hex in a
-     dozen components; a colour that means something should be named once. */
-  --danger: #d03b3b;
-  --danger-wash: rgba(208, 59, 59, 0.1);
-
-  /* Shape */
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
-
-  --background: var(--plane);
-  --foreground: var(--ink);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:where(:not([data-theme="light"])) {
-    color-scheme: dark;
-
-    --priority-medium: #79c0ff;
-    --surface: #26323f;
-    --plane: #17212b;
-    --surface-raised: #2e3b49;
-
-    --ink: #f5f8fa;
-    --ink-secondary: #c7d2d9;
-    --ink-muted: #a2b0bb;
-
-    --hairline: #475665;
-    --gridline: #34404d;
-    --baseline: #5b6b78;
-
-    --accent: #e4f47a;
-    --accent-bright: #e4f47a;
-    --accent-wash: #39462e;
-    --accent-contrast: #17212b;
-    --accent-on: #17212b;
-
-    --danger: #e56a6a;
-    --danger-wash: rgba(229, 106, 106, 0.14);
-  }
-}
-
-:root[data-theme="dark"] {
   color-scheme: dark;
   --priority-medium: #79c0ff;
 
@@ -91,6 +24,11 @@
 
   --danger: #e56a6a;
   --danger-wash: rgba(229, 106, 106, 0.14);
+
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --background: var(--plane);
+  --foreground: var(--ink);
 }
 
 @theme inline {
@@ -112,7 +50,12 @@
 body {
   background: var(--plane);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -236,7 +179,9 @@ textarea:focus-visible {
     font-size: 0.8125rem;
     line-height: 1.4;
     outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   .select-with-dot {
@@ -276,7 +221,10 @@ textarea:focus-visible {
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      opacity 0.15s ease;
   }
 
   .btn-primary {
@@ -359,11 +307,11 @@ textarea:focus-visible {
         transparent 1px
       ),
       /* and the fine one inside it */
-      linear-gradient(
-        to right,
-        color-mix(in srgb, var(--ink) 6%, transparent) 1px,
-        transparent 1px
-      ),
+        linear-gradient(
+          to right,
+          color-mix(in srgb, var(--ink) 6%, transparent) 1px,
+          transparent 1px
+        ),
       linear-gradient(
         to bottom,
         color-mix(in srgb, var(--ink) 6%, transparent) 1px,

@@ -6,7 +6,6 @@ import Link from "next/link";
 import { BoardProvider, useBoard } from "@/components/BoardProvider";
 import { Wordmark } from "@/components/Logo";
 import { ReportBugButton } from "@/components/ReportBugButton";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { FeedbackProvider } from "@/components/Feedback";
 import { ProjectOverview } from "@/components/ProjectOverview";
 import {
@@ -462,7 +461,6 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
         </div>
         <div className="flex items-center gap-2">
           <ReportBugButton />
-          <ThemeToggle />
           {member ? <MemberMenu member={member} /> : user && <AccountMenu user={user} />}
         </div>
       </header>

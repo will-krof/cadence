@@ -19,38 +19,21 @@ export const metadata: Metadata = {
     "Sprint planning with a Gantt timeline and a task tracker in one place",
 };
 
-/**
- * Applies the stored theme before first paint so the page never flashes the
- * wrong palette. A raw tag rather than `next/script`: it has to run before
- * anything else, and it carries the request's nonce so the content security
- * policy lets this one inline script through.
- */
-const themeBoot = `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||t==='light'){document.documentElement.dataset.theme=t}}catch(e){}})()`;
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // The content security policy allows scripts by nonce, and the proxy passes
-  // the one it minted for this request along. Handing it to the tag explicitly
-  // keeps the rendered markup and the client's idea of it in agreement.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  // Keep entry pages dynamic so Next can nonce their scripts per request.
+  await headers();
 
   return (
     <html
       lang="en"
+      data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      suppressHydrationWarning
     >
-      <body className="h-screen flex flex-col overflow-hidden">
-        <script
-          nonce={nonce}
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: themeBoot }}
-        />
-        {children}
-      </body>
+      <body className="h-screen flex flex-col overflow-hidden">{children}</body>
     </html>
   );
 }

@@ -51,7 +51,7 @@ can't change them. Cadence hands you an empty tracker and a text field.
 
 - **Name them.** *Backlog*, *Building*, *In review*, *Blocked*, *Shipped* — or
   whatever your team already says out loud. Up to twenty of them.
-- **Colour them.** Eight colours that tell each other apart on both themes. The
+- **Colour them.** Eight colours that tell each other apart in the dark palette. The
   colour is a dot beside the name, never instead of it.
 - **Order them.** Move a column left or right and the whole board — cards,
   counts, the timeline's tally, the reports — moves with it.
@@ -116,7 +116,7 @@ Cadence design.
 <td colspan="2"><img src="docs/screenshots/cadence-dark.webp" alt="Cadence timeline in the navy dark theme" /></td>
 </tr>
 <tr>
-<td colspan="2"><b>Dark theme.</b> The same timeline and controls in a deeper navy palette. The theme toggle remembers your choice in the browser.</td>
+<td colspan="2"><b>Dark theme.</b> The navy palette is used throughout the app. No theme switch is offered.</td>
 </tr>
 </table>
 
@@ -406,7 +406,7 @@ No ticket-deletion endpoint is provided.
 | **Next.js 16** (App Router) | Server components, route handlers under `src/app/api`, Turbopack in dev |
 | **React 19** | One board provider over the whole app; boards, roster and wiki fetched when first opened |
 | **Prisma 6 + SQLite** | The schema in `prisma/schema.prisma`, the client generated into `src/generated/prisma` |
-| **Tailwind CSS 4** | One type scale, one card, one chip, one red — themed light and dark from CSS variables |
+| **Tailwind CSS 4** | One type scale, one card, one chip, one red — a dark theme using CSS variables |
 | **Sessions in httpOnly cookies** | scrypt password hashes, hashed session tokens, rate-limited login, `no-store` on every API answer |
 
 ```
@@ -502,3 +502,8 @@ TEST_DATABASE_URL=postgresql://localhost:5432/cadence_admin_test_example npm run
 The test refuses non-local hosts and other database names. It creates fake
 accounts, promotes a test operator and exercises ban, session revocation and
 deletion rejection and data preservation. Never point it at a shared or production database.
+
+### Appearance
+
+Cadence uses the dark theme on every page. There is no theme switch; operating
+system preferences and previously stored light-theme choices do not change it.

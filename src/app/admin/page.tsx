@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { Wordmark } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { FeedbackProvider } from "@/components/Feedback";
 import { AdminPanel } from "@/components/admin/AdminPanel";
 
@@ -22,7 +21,6 @@ export default async function AdminPage() {
           <Link href="/app" className="btn-secondary">
             Back to workspace
           </Link>
-          <ThemeToggle />
         </div>
       </header>
       <main className="thin-scroll min-h-0 flex-1 overflow-y-auto">

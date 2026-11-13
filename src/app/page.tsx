@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getViewer } from "@/lib/viewer";
 import { Wordmark } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function LandingPage() {
   const viewer = await getViewer();
@@ -26,7 +25,6 @@ export default async function LandingPage() {
               </Link>
             </>
           )}
-          <ThemeToggle />
         </div>
       </header>
 

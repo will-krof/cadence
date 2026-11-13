@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getViewer } from "@/lib/viewer";
 import { Wordmark } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { FeedbackProvider } from "@/components/Feedback";
 import { AccountPanel } from "@/components/shell/AccountPanel";
 
@@ -50,7 +49,6 @@ export default async function AccountPage() {
             Your profile
           </span>
         </div>
-        <ThemeToggle />
       </header>
 
       <div className="thin-scroll min-h-0 flex-1 overflow-y-auto">
