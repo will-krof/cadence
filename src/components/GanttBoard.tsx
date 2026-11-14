@@ -40,6 +40,9 @@ import {
   SprintPicker,
   Stat,
 } from "@/components/ui";
+import { TimelineColumns } from "@/components/timeline/TimelineColumns";
+import { BulkAssignment } from "@/components/timeline/BulkAssignment";
+import { toggleTaskSelection } from "@/lib/task-selection";
 import { TaskEditModal } from "@/components/TaskEditModal";
 
 const ROW_HEIGHT = 44;
@@ -142,9 +145,11 @@ const COL_WIDTHS_COMPACT: ColWidths = { task: 132, status: 104, developer: 96 };
 
 export function GanttBoard({
   canEdit = true,
+  canManageColumns = false,
   onNewTask,
 }: {
   canEdit?: boolean;
+  canManageColumns?: boolean;
   /**
    * Writing a task from the board it will appear on. Drawn on the chart, it
    * comes with the days it was drawn over already filled in.
@@ -200,6 +205,35 @@ export function GanttBoard({
     const whole = new Set(tasks.filter((t) => !t.parentId).map((t) => t.id));
     return tasks.filter((t) => !(t.parentId && whole.has(t.parentId)));
   }, [tasks, folded]);
+
+  const [managingColumns, setManagingColumns] = useState(false);
+  // Selection is local to the current project, sprint and visible task rows.
+  const scope = `${activeProject?.id}:${sprint?.id}:${sprintId}:${folded}`;
+  const [selection, setSelection] = useState<{
+    scope: string;
+    ids: string[];
+    anchor: string | null;
+  }>({ scope: "", ids: [], anchor: null });
+  const rowIds = useMemo(() => rows.map((task) => task.id), [rows]);
+  const visibleIds = useMemo(() => new Set(rowIds), [rowIds]);
+  const selected = useMemo(
+    () => new Set(selection.scope === scope
+      ? selection.ids.filter((id) => visibleIds.has(id))
+      : []),
+    [selection, scope, visibleIds]
+  );
+  const selectTask = useCallback((id: string, range: boolean) => {
+    setSelection((previous) => {
+      const current = previous.scope === scope
+        ? previous
+        : { scope, ids: [], anchor: null };
+      return {
+        scope,
+        ids: toggleTaskSelection(rowIds, current.ids, current.anchor, id, range),
+        anchor: range && current.anchor ? current.anchor : id,
+      };
+    });
+  }, [scope, rowIds]);
 
   const foldable = useMemo(
     () => tasks.some((t) => t.parentId),
@@ -950,6 +984,11 @@ export function GanttBoard({
         </div>
 
         <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
+          {canManageColumns && (
+            <button type="button" className="btn-secondary" onClick={() => setManagingColumns(true)}>
+              Columns
+            </button>
+          )}
           {/* Only where the work is planned in rounds. Off, the chart is the
               project's whole plan and there is nothing to choose between. */}
           {activeProject?.hasSprints !== false && (
@@ -1020,6 +1059,31 @@ export function GanttBoard({
         </div>
       </div>
 
+      {canEdit && rows.length > 0 && activeProject && (
+        <div className="flex flex-wrap items-center gap-3 border-b border-[var(--hairline)] px-4 py-2 sm:px-6">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setSelection({ scope, ids: rowIds, anchor: rowIds[0] ?? null })}
+          >
+            Select all visible tasks
+          </button>
+          {selected.size ? (
+            <BulkAssignment
+              key={scope}
+              projectId={activeProject.id}
+              taskIds={[...selected]}
+              onClear={() => setSelection({ scope, ids: [], anchor: null })}
+            />
+          ) : (
+            <span className="t-micro">Select tasks with the checkboxes. Shift-click selects a range.</span>
+          )}
+        </div>
+      )}
+      {managingColumns && canManageColumns && (
+        <TimelineColumns onClose={() => setManagingColumns(false)} />
+      )}
+
       {/* On small screens the table and timeline scroll together as one surface,
           so the timeline gets the full viewport width instead of a sliver. */}
       <div
@@ -1082,6 +1146,8 @@ export function GanttBoard({
             <TableRow
               key={task.id}
               task={task}
+              selected={selected.has(task.id)}
+              onSelect={selectTask}
               steps={fields.subtasks ? stepCounts.get(task.id) : undefined}
               blocks={blockCounts.get(task.id) ?? 0}
               critical={showCritical && network.critical.has(task.id)}
@@ -1284,7 +1350,7 @@ export function GanttBoard({
                       ? `${task.title} — drag across the days it runs to date it`
                       : undefined
                   }
-                  className={`relative border-b border-[var(--hairline)] ${
+                  className={`relative border-b border-[var(--hairline)] ${selected.has(task.id) ? "bg-[var(--accent-wash)]" : ""} ${
                     drawable ? "cursor-crosshair" : ""
                   }`}
                   style={{
@@ -1440,6 +1506,8 @@ export function GanttBoard({
  */
 const TableRow = memo(function TableRow({
   task,
+  selected,
+  onSelect,
   steps,
   blocks,
   critical,
@@ -1458,6 +1526,8 @@ const TableRow = memo(function TableRow({
   onDropRow,
 }: {
   task: Task;
+  selected: boolean;
+  onSelect: (id: string, range: boolean) => void;
   /** How many of this task's steps are done, when it has any. */
   steps?: { done: number; total: number };
   /** How many tasks on this board are waiting on this one. */
@@ -1522,7 +1592,7 @@ const TableRow = memo(function TableRow({
         e.preventDefault();
         onDropRow(task.id, landsAfter(e));
       }}
-      className={`group relative grid items-center border-b border-[var(--hairline)] transition-colors hover:bg-[var(--plane)] ${
+      className={`group relative grid items-center border-b border-[var(--hairline)] transition-colors hover:bg-[var(--plane)] ${selected ? "bg-[var(--accent-wash)]" : ""} ${
         dragging ? "opacity-40" : ""
       } ${
         step
@@ -1546,6 +1616,16 @@ const TableRow = memo(function TableRow({
         }`}
         style={step ? { paddingLeft: "1.75rem" } : undefined}
       >
+        {canEdit && (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => {}}
+            onClick={(e) => { e.stopPropagation(); onSelect(task.id, e.shiftKey); }}
+            aria-label={`Select ${task.title}`}
+            className="mr-1 h-3.5 w-3.5 shrink-0 accent-[var(--accent)]"
+          />
+        )}
         {canEdit && (
           <span
             className="shrink-0 cursor-grab text-[var(--ink-muted)] opacity-0 transition group-hover:opacity-100 active:cursor-grabbing"
@@ -1573,7 +1653,12 @@ const TableRow = memo(function TableRow({
             keeps its own mark beside the title rather than swallowing it. */}
         <button
           type="button"
-          onClick={() => onOpen(task.id)}
+          onClick={(e) => {
+            if (canEdit && (e.shiftKey || e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              onSelect(task.id, e.shiftKey);
+            } else onOpen(task.id);
+          }}
           className="truncate text-left hover:underline"
           title={task.description || "Open this task"}
         >

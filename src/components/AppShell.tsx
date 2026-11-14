@@ -896,6 +896,8 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
                 <Centered>Loading project…</Centered>
               ) : activeView === "timeline" ? (
                 <GanttBoard
+                  key={activeProject.id}
+                  canManageColumns={isAdmin && may.timeline}
                   canEdit={may.timeline}
                   onNewTask={(dates) => setAddingTask({ ...dates })}
                 />
