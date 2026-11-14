@@ -366,6 +366,7 @@ export interface Project {
   metricsCompleted: boolean;
   metricsCompletionTime: boolean;
   metricsWorkload: boolean;
+  metricsBurndown: boolean;
   /**
    * When the project runs, said by hand. Null leaves the span to the work: the
    * earliest task to the latest, which is what a project on sprints wants.

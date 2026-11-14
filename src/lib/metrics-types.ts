@@ -29,13 +29,32 @@ export const PROJECT_METRICS = [
     label: "Team workload",
     hint: "Open assignments per person, with unassigned tasks shown separately",
   },
+  {
+    key: "burndown",
+    flag: "metricsBurndown",
+    label: "Burndown chart",
+    hint: "Remaining tasks over time compared with the project deadline",
+  },
 ] as const;
 
 export type MetricKey = (typeof PROJECT_METRICS)[number]["key"];
 export type MetricFlag = (typeof PROJECT_METRICS)[number]["flag"];
 export type MetricSettings = Record<MetricFlag, boolean>;
 
+export interface BurndownData {
+  points: {
+    date: string;
+    remaining: number | null;
+    scope: number;
+    ideal: number | null;
+  }[];
+  deadline: string | null;
+  missingHistory: number;
+  totalTasks: number;
+}
+
 export interface ProjectMetricValues {
+  burndown?: BurndownData;
   progress?: { percent: number; done: number; total: number };
   overdue?: { count: number; datedOpen: number };
   completed?: { count: number; from: string; to: string };

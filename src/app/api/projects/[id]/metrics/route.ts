@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { projectScope } from "@/lib/api-auth";
 import { requireViewer } from "@/lib/viewer";
 import { forbidden, notFound } from "@/lib/responses";
+import { buildBurndown } from "@/lib/burndown";
 import { buildProjectMetrics } from "@/lib/metrics";
 import { PROJECT_METRICS, type ProjectMetricValues } from "@/lib/metrics-types";
 
@@ -25,6 +26,9 @@ export async function GET(
       metricsCompleted: true,
       metricsCompletionTime: true,
       metricsWorkload: true,
+      metricsBurndown: true,
+      startDate: true,
+      endDate: true,
     },
   });
   if (!project || !project.hasMetrics) return notFound("Metrics");
@@ -61,7 +65,7 @@ export async function GET(
       hasDoneColumn: false,
       values: {},
     });
-  const [tasks, completions, doneColumns] = await prisma.$transaction([
+  const [tasks, completions, doneColumns, events] = await prisma.$transaction([
     prisma.task.findMany({
       where: { projectId: id },
       select: {
@@ -83,14 +87,31 @@ export async function GET(
       _max: { at: true },
     }),
     prisma.projectColumn.count({ where: { projectId: id, isDone: true } }),
+    prisma.taskEvent.findMany({
+      where: {
+        task: { projectId: id },
+        at: { lte: generatedAt },
+        ...(project.metricsBurndown ? {} : { id: { in: [] } }),
+      },
+      select: {
+        id: true,
+        taskId: true,
+        at: true,
+        column: { select: { isDone: true } },
+      },
+      orderBy: [{ at: "asc" }, { id: "asc" }],
+    }),
   ]);
-  const all = buildProjectMetrics(
+  const basics = buildProjectMetrics(
     tasks,
     completions.flatMap((row) =>
       row._max?.at ? [{ taskId: row.taskId, at: row._max.at }] : [],
     ),
     generatedAt,
   );
+  const all: ProjectMetricValues = { ...basics };
+  if (project.metricsBurndown)
+    all.burndown = buildBurndown(tasks, events, project, generatedAt);
   const values: ProjectMetricValues = Object.fromEntries(
     enabled.map((key) => [key, all[key]]),
   );

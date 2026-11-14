@@ -36,7 +36,8 @@ export type ProjectFlag =
   | "metricsOverdue"
   | "metricsCompleted"
   | "metricsCompletionTime"
-  | "metricsWorkload";
+  | "metricsWorkload"
+  | "metricsBurndown";
 
 const METRIC_FIELDS = [
   "metricsProgress",
@@ -44,6 +45,7 @@ const METRIC_FIELDS = [
   "metricsCompleted",
   "metricsCompletionTime",
   "metricsWorkload",
+  "metricsBurndown",
 ] as const;
 const FLAGS = [...TOOLS, ...TASK_FIELDS, ...METRIC_FIELDS] as const;
 

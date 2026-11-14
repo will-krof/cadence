@@ -232,6 +232,7 @@ model Project {
   metricsCompleted Boolean @default(true)
   metricsCompletionTime Boolean @default(true)
   metricsWorkload Boolean @default(true)
+  metricsBurndown Boolean @default(true)
 
   /// When the project runs, said rather than worked out. A project that plans
   /// in sprints gets its span from them and leaves these null; one that doesn't

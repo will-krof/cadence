@@ -46,6 +46,7 @@ export const PROJECT_FIELDS = {
   metricsCompleted: true,
   metricsCompletionTime: true,
   metricsWorkload: true,
+  metricsBurndown: true,
   startDate: true,
   endDate: true,
   taskHasPriority: true,

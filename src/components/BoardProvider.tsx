@@ -104,6 +104,7 @@ interface ProjectInput {
   metricsCompleted?: boolean;
   metricsCompletionTime?: boolean;
   metricsWorkload?: boolean;
+  metricsBurndown?: boolean;
   /** Stated by hand, or empty to leave the span to the work. */
   startDate?: string | null;
   endDate?: string | null;

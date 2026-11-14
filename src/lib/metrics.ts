@@ -13,7 +13,7 @@ export function buildProjectMetrics(
   tasks: MetricTask[],
   completions: { taskId: string; at: Date }[],
   now = new Date(),
-): Required<ProjectMetricValues> {
+): Required<Omit<ProjectMetricValues, "burndown">> {
   const today = Date.UTC(
     now.getUTCFullYear(),
     now.getUTCMonth(),

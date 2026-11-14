@@ -24,6 +24,7 @@ export interface ProjectSettingsValues {
   metricsCompleted: boolean;
   metricsCompletionTime: boolean;
   metricsWorkload: boolean;
+  metricsBurndown: boolean;
   startDate: string | null;
   endDate: string | null;
   taskHasPriority: boolean;
@@ -65,6 +66,7 @@ function draftOf(project: Project): Draft {
     metricsCompleted: project.metricsCompleted,
     metricsCompletionTime: project.metricsCompletionTime,
     metricsWorkload: project.metricsWorkload,
+    metricsBurndown: project.metricsBurndown,
     startDate: dateValue(project.startDate),
     endDate: dateValue(project.endDate),
     taskHasPriority: project.taskHasPriority,

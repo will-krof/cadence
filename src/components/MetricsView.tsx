@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Project } from "@/lib/types";
 import type { MetricsPayload } from "@/lib/metrics-types";
+import { BurndownChart } from "@/components/metrics/BurndownChart";
 import { Panel, StatTile } from "@/components/reports/charts";
 
 function duration(days: number | null) {
@@ -49,6 +50,9 @@ export function MetricsView({ project }: { project: Project }) {
     project.metricsCompleted,
     project.metricsCompletionTime,
     project.metricsWorkload,
+    project.metricsBurndown,
+    project.startDate,
+    project.endDate,
     reload,
   ]);
 
@@ -157,6 +161,7 @@ export function MetricsView({ project }: { project: Project }) {
                 />
               )}
             </div>
+            {values?.burndown && <BurndownChart data={values.burndown} />}
             {values?.progress && (
               <Panel title="Completion">
                 <div
