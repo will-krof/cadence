@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ProjectColumns } from "@/components/project/ProjectColumns";
 import { ColumnForm } from "@/components/ColumnForm";
 import { useBoard } from "@/components/BoardProvider";
 import { useFeedback } from "@/components/Feedback";
@@ -101,6 +102,8 @@ export function TrackerBoard({
     reorderColumns,
   } = useBoard();
   const [assignee, setAssignee] = useState("");
+  const [managingColumns, setManagingColumns] = useState(false);
+  const openColumns = useCallback(() => setManagingColumns(true), []);
   // Which of a task's fields this project asks about, read once for the board.
   const fields = useMemo(() => taskFields(activeProject), [activeProject]);
   // Only the identity of what is being dragged lives in state; where it is
@@ -361,6 +364,7 @@ export function TrackerBoard({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {managingColumns && canManageColumns && <ProjectColumns onClose={() => setManagingColumns(false)} />}
       <div className="flex flex-wrap items-end gap-3 border-b border-[var(--hairline)] px-4 py-3 sm:px-6">
         {/* Only where the work is planned in rounds. */}
         {activeProject?.hasSprints !== false && (
@@ -459,6 +463,7 @@ export function TrackerBoard({
                       links={fields.dependencies ? links.get(task.id) : undefined}
                       columns={columns}
                       canEdit={canEdit}
+                      onManageColumns={canManageColumns ? openColumns : undefined}
                       parentTitle={
                         task.parentId ? titles.get(task.parentId) : undefined
                       }
@@ -916,6 +921,7 @@ const TaskCard = memo(function TaskCard({
   dragging,
   onDragStart,
   onColumnChange,
+  onManageColumns,
   onAssign,
   onOpen,
   onEdit,
@@ -937,6 +943,7 @@ const TaskCard = memo(function TaskCard({
   dragging: boolean;
   onDragStart: (state: DragState) => void;
   onColumnChange: (id: string, columnId: string | null) => void;
+  onManageColumns?: () => void;
   onAssign: (id: string, assigneeIds: string[]) => void;
   /** Reading the task: what a click on the card asks for. */
   onOpen: (id: string) => void;
@@ -1161,6 +1168,7 @@ const TaskCard = memo(function TaskCard({
             columns={columns}
             disabled={!canEdit}
             onChange={(columnId) => onColumnChange(task.id, columnId)}
+            onManageColumns={onManageColumns}
           />
         </div>
         <AssigneePicker

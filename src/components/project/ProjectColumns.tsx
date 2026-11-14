@@ -10,12 +10,12 @@ import {
   type ProjectColumn,
 } from "@/lib/types";
 
-export function TimelineColumns({ onClose }: { onClose: () => void }) {
+export function ProjectColumns({ onClose }: { onClose: () => void }) {
   const { activeProject, columns, createColumn, updateColumn } = useBoard();
   const [adding, setAdding] = useState(columns.length === 0);
   if (!activeProject) return null;
   return (
-    <Modal title="Timeline columns" onClose={onClose}>
+    <Modal title="Project columns" onClose={onClose}>
       <p className="t-small mb-4">
         Statuses are shared by the Timeline and Tracker. You can use them with
         Tracker switched off.

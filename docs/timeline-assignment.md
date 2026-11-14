@@ -34,3 +34,20 @@ TEST_DATABASE_URL and checks columns while Tracker is off, additive/replacement
 semantics, unaffected tasks, atomic failures, concurrency, input limits, active
 roster and project/workspace/member permission boundaries. Never use a shared or
 production database for integration fixtures.
+
+## Status dropdowns
+
+Timeline rows and Tracker cards show their current status as a colored chip.
+Opening it shows the project's colored column chips, marks the current selection,
+and lets editors move the task. The owner's **Edit columns** shortcut, with a
+pencil icon below the list, opens the shared Project columns dialog to create,
+rename, recolor or mark columns as finished. This also works on an unsorted task
+before the first column exists and with Tracker switched off. Read-only viewers
+see a chip without mutation controls; invited editors do not receive the settings
+shortcut.
+
+Arrow keys, Home and End move through the options; Enter or Space chooses one.
+Escape returns focus to the trigger. Tab can reach Edit columns. Outside clicks
+and scrolling the board dismiss the popup, while scrolling inside a long list
+keeps it open. The popup is rendered outside scroll containers and positioned
+within the viewport. The surrounding interface retains the dark Cadence palette.

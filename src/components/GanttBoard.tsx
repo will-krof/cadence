@@ -40,7 +40,7 @@ import {
   SprintPicker,
   Stat,
 } from "@/components/ui";
-import { TimelineColumns } from "@/components/timeline/TimelineColumns";
+import { ProjectColumns } from "@/components/project/ProjectColumns";
 import { BulkAssignment } from "@/components/timeline/BulkAssignment";
 import { toggleTaskSelection } from "@/lib/task-selection";
 import { TaskEditModal } from "@/components/TaskEditModal";
@@ -207,6 +207,7 @@ export function GanttBoard({
   }, [tasks, folded]);
 
   const [managingColumns, setManagingColumns] = useState(false);
+  const openColumns = useCallback(() => setManagingColumns(true), []);
   // Selection is local to the current project, sprint and visible task rows.
   const scope = `${activeProject?.id}:${sprint?.id}:${sprintId}:${folded}`;
   const [selection, setSelection] = useState<{
@@ -1081,7 +1082,7 @@ export function GanttBoard({
         </div>
       )}
       {managingColumns && canManageColumns && (
-        <TimelineColumns onClose={() => setManagingColumns(false)} />
+        <ProjectColumns onClose={() => setManagingColumns(false)} />
       )}
 
       {/* On small screens the table and timeline scroll together as one surface,
@@ -1148,6 +1149,7 @@ export function GanttBoard({
               task={task}
               selected={selected.has(task.id)}
               onSelect={selectTask}
+              onManageColumns={canManageColumns ? openColumns : undefined}
               steps={fields.subtasks ? stepCounts.get(task.id) : undefined}
               blocks={blockCounts.get(task.id) ?? 0}
               critical={showCritical && network.critical.has(task.id)}
@@ -1508,6 +1510,7 @@ const TableRow = memo(function TableRow({
   task,
   selected,
   onSelect,
+  onManageColumns,
   steps,
   blocks,
   critical,
@@ -1528,6 +1531,7 @@ const TableRow = memo(function TableRow({
   task: Task;
   selected: boolean;
   onSelect: (id: string, range: boolean) => void;
+  onManageColumns?: () => void;
   /** How many of this task's steps are done, when it has any. */
   steps?: { done: number; total: number };
   /** How many tasks on this board are waiting on this one. */
@@ -1752,6 +1756,7 @@ const TableRow = memo(function TableRow({
           columns={columns}
           disabled={!canEdit}
           onChange={(columnId) => onChange(task.id, { columnId })}
+          onManageColumns={onManageColumns}
         />
       </div>
 
