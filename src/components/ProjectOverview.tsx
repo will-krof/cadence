@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useBoard } from "@/components/BoardProvider";
 import { useFeedback } from "@/components/Feedback";
 import { PeopleSection } from "@/components/project/PeopleSection";
+import { ProjectSummary } from "@/components/project/ProjectSummary";
 import { ProjectSettingsForm } from "@/components/project/ProjectSettingsForm";
 import { RolesSection } from "@/components/project/RolesSection";
 import { TagsSection } from "@/components/project/TagsSection";
@@ -128,7 +129,7 @@ export function ProjectOverview({
     const onProject = new Set(
       memberships
         .filter((m) => m.projectId === activeProject.id)
-        .map((m) => m.developerId)
+        .map((m) => m.developerId),
     );
     for (const t of tasks) for (const id of t.assigneeIds) onProject.add(id);
 
@@ -193,7 +194,6 @@ export function ProjectOverview({
 
   const unassigned = tasks.filter((t) => t.assigneeIds.length === 0).length;
 
-
   async function remove() {
     if (!activeProject) return;
     const ok = await confirm({
@@ -205,6 +205,100 @@ export function ProjectOverview({
     if (!ok) return;
     await deleteProject(activeProject.id);
   }
+
+  const management = (
+    <>
+      <p className="text-[0.75rem] text-[var(--ink-muted)]">
+        Changes to people, roles and sprints are saved immediately.
+      </p>
+      {activeProject.hasSprints && (
+        <SprintsSection
+          sprints={sprints}
+          tasks={tasks}
+          canEdit={canEdit}
+          onCreate={createSprint}
+          onUpdate={updateSprint}
+          onDelete={deleteSprint}
+        />
+      )}
+
+      <PeopleSection
+        project={activeProject}
+        people={people}
+        developers={developers}
+        memberships={memberships}
+        tasks={tasks}
+        // What counts as finished is the project's own answer, so the load
+        // beside each name is counted against its columns.
+        doneColumnIds={doneColumnIds(activeProject.columns)}
+        loading={projectLoading}
+        canEdit={canEdit}
+        onAdd={addMember}
+        onRemove={removeMember}
+        onRolesChange={setMemberRoles}
+        onRotateInvite={rotateInvite}
+        onRevokeInvite={revokeInvite}
+        onOpenTeam={
+          visibleViews.includes("team") ? () => onOpenView("team") : undefined
+        }
+      />
+
+      {canEdit && activeProject.hasRoles ? (
+        <RolesSection
+          project={activeProject}
+          onAdd={(name) => createRole(activeProject.id, name)}
+          onToggle={(roleId, patch) =>
+            updateRole(activeProject.id, roleId, patch)
+          }
+          onRename={(roleId, name) =>
+            updateRole(activeProject.id, roleId, { name })
+          }
+          onRemove={(roleId) => deleteRole(activeProject.id, roleId)}
+        />
+      ) : null}
+
+      {canEdit && (
+        <section className="flex flex-col gap-2.5 border-t border-[var(--hairline)] pt-4">
+          <h3 className="text-[0.8125rem] font-semibold tracking-tight">
+            Finishing with this project
+          </h3>
+          {/* Archiving is the reversible one, so it leads — and each button
+                now says what it does before it is pressed, rather than leaving
+                two bare verbs side by side and one of them final. */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+            <div className="flex-1">
+              <button
+                onClick={() =>
+                  updateProject(activeProject.id, {
+                    archived: !activeProject.archived,
+                  })
+                }
+                className="btn-secondary"
+              >
+                {activeProject.archived ? "Restore project" : "Archive project"}
+              </button>
+              <p className="mt-1.5 text-[0.6875rem] text-[var(--ink-muted)]">
+                {activeProject.archived
+                  ? "Put it back among the projects being worked on."
+                  : "Keeps everything and stays openable — it just leaves the run of projects being worked on."}
+              </p>
+            </div>
+            <div className="flex-1">
+              <button
+                onClick={remove}
+                className="btn-secondary !text-[var(--danger)]"
+              >
+                Delete project
+              </button>
+              <p className="mt-1.5 text-[0.6875rem] text-[var(--ink-muted)]">
+                Its tasks, sprints and pages go with it. This cannot be undone.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  );
 
   /**
    * Editing is a screen of its own, not a form wedged into the card.
@@ -234,6 +328,7 @@ export function ProjectOverview({
           <ProjectSettingsForm
             key={activeProject.id}
             project={activeProject}
+            management={management}
             tagEditor={
               <TagsSection
                 project={activeProject}
@@ -317,7 +412,9 @@ export function ProjectOverview({
           />
           <Metric
             label="Start date"
-            value={projectLoading ? null : span.start ? formatDay(span.start) : "—"}
+            value={
+              projectLoading ? null : span.start ? formatDay(span.start) : "—"
+            }
             hint={span.stated.start ? "Set for the project" : "Earliest task"}
           />
           <Metric
@@ -327,7 +424,9 @@ export function ProjectOverview({
           />
           <Metric
             label="Duration"
-            value={projectLoading ? null : span.days ? `${span.days} days` : "—"}
+            value={
+              projectLoading ? null : span.days ? `${span.days} days` : "—"
+            }
             hint="Start to end"
           />
         </section>
@@ -361,94 +460,22 @@ export function ProjectOverview({
           </section>
         )}
 
+        <ProjectSummary
+          project={activeProject}
+          people={people}
+          memberships={memberships}
+          loading={projectLoading}
+        />
+
         {activeProject.hasSprints && (
           <SprintsSection
             sprints={sprints}
             tasks={tasks}
-            canEdit={canEdit}
+            canEdit={false}
             onCreate={createSprint}
             onUpdate={updateSprint}
             onDelete={deleteSprint}
           />
-        )}
-
-        <PeopleSection
-          project={activeProject}
-          people={people}
-          developers={developers}
-          memberships={memberships}
-          tasks={tasks}
-          // What counts as finished is the project's own answer, so the load
-          // beside each name is counted against its columns.
-          doneColumnIds={doneColumnIds(activeProject.columns)}
-          loading={projectLoading}
-          canEdit={canEdit}
-          onAdd={addMember}
-          onRemove={removeMember}
-          onRolesChange={setMemberRoles}
-          onRotateInvite={rotateInvite}
-          onRevokeInvite={revokeInvite}
-          onOpenTeam={
-            visibleViews.includes("team") ? () => onOpenView("team") : undefined
-          }
-        />
-
-        {canEdit && activeProject.hasRoles ? (
-          <RolesSection
-            project={activeProject}
-            onAdd={(name) => createRole(activeProject.id, name)}
-            onToggle={(roleId, patch) =>
-              updateRole(activeProject.id, roleId, patch)
-            }
-            onRename={(roleId, name) =>
-              updateRole(activeProject.id, roleId, { name })
-            }
-            onRemove={(roleId) => deleteRole(activeProject.id, roleId)}
-          />
-        ) : null}
-
-        {canEdit && (
-          <section className="flex flex-col gap-2.5 border-t border-[var(--hairline)] pt-4">
-            <h3 className="text-[0.8125rem] font-semibold tracking-tight">
-              Finishing with this project
-            </h3>
-            {/* Archiving is the reversible one, so it leads — and each button
-                now says what it does before it is pressed, rather than leaving
-                two bare verbs side by side and one of them final. */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-              <div className="flex-1">
-                <button
-                  onClick={() =>
-                    updateProject(activeProject.id, {
-                      archived: !activeProject.archived,
-                    })
-                  }
-                  className="btn-secondary"
-                >
-                  {activeProject.archived
-                    ? "Restore project"
-                    : "Archive project"}
-                </button>
-                <p className="mt-1.5 text-[0.6875rem] text-[var(--ink-muted)]">
-                  {activeProject.archived
-                    ? "Put it back among the projects being worked on."
-                    : "Keeps everything and stays openable — it just leaves the run of projects being worked on."}
-                </p>
-              </div>
-              <div className="flex-1">
-                <button
-                  onClick={remove}
-                  className="btn-secondary !text-[var(--danger)]"
-                >
-                  Delete project
-                </button>
-                <p className="mt-1.5 text-[0.6875rem] text-[var(--ink-muted)]">
-                  Its tasks, sprints and pages go with it. This cannot be
-                  undone.
-                </p>
-              </div>
-            </div>
-          </section>
         )}
       </div>
     </div>

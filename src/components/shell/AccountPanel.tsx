@@ -210,6 +210,7 @@ export function AccountPanel() {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 className="input"
                 autoComplete="current-password"
+                placeholder="Enter your current password"
               />
             </Field>
             <Field label="New password" className="flex-1">
@@ -254,10 +255,14 @@ export function AccountPanel() {
         <button
           type="button"
           onClick={() => setClosing(true)}
+          disabled={account.role === "SUPERADMIN"}
           className="btn-danger mt-4"
         >
           {account.kind === "owner" ? "Delete my account" : "Remove my login"}
         </button>
+        {account.role === "SUPERADMIN" && (
+          <p className="t-small mt-2">The superadmin account is protected from deletion.</p>
+        )}
       </section>
 
       {closing && (

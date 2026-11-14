@@ -51,7 +51,7 @@ function askHidden(question) {
   });
 }
 
-/** SQLite string literal: the only thing to escape is the quote itself. */
+/** SQL string literal: the only thing to escape is the quote itself. */
 const quote = (value) => `'${String(value).replace(/'/g, "''")}'`;
 
 const args = parseArgs(process.argv.slice(2));
@@ -72,15 +72,20 @@ if (password.length < MIN_PASSWORD_LENGTH) {
   process.exit(1);
 }
 
-const sql = `INSERT INTO "User" ("id", "email", "name", "passwordHash", "createdAt")
-VALUES (${quote(randomUUID())}, ${quote(email)}, ${
+const userId = randomUUID();
+const sql = `BEGIN;
+INSERT INTO "User" ("id", "email", "name", "passwordHash", "createdAt")
+VALUES (${quote(userId)}, ${quote(email)}, ${
   args.name.trim() ? quote(args.name.trim()) : "NULL"
-}, ${quote(hashPassword(password))}, CURRENT_TIMESTAMP);`;
+}, ${quote(hashPassword(password))}, CURRENT_TIMESTAMP);
+INSERT INTO "Developer" ("id", "userId", "name", "email")
+VALUES (${quote(randomUUID())}, ${quote(userId)}, ${quote(args.name.trim() || email)}, ${quote(email)});
+COMMIT;`;
 
 try {
   execFileSync(
-    "npx",
-    ["prisma", "db", "execute", "--schema", "prisma/schema.prisma", "--stdin"],
+    process.execPath,
+    ["scripts/prisma.mjs", "db", "execute", "--stdin"],
     { input: sql, stdio: ["pipe", "pipe", "pipe"] }
   );
   console.log(`Account created: ${email}`);

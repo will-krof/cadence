@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -23,6 +24,7 @@ import {
   priorityMeta,
 } from "@/lib/types";
 import { formatRange } from "@/lib/dates";
+import { contrastText } from "@/lib/color";
 import { safeColor } from "@/lib/sanitize";
 
 /**
@@ -593,10 +595,14 @@ export function AssigneeField({
  * anything drawn inside one of those is cut off at its edge.
  */
 export function Popover({
+  focusOnOpen = false,
+  label,
   anchor,
   onClose,
   children,
 }: {
+  label?: string;
+  focusOnOpen?: boolean;
   anchor: React.RefObject<HTMLElement | null>;
   onClose: () => void;
   children: React.ReactNode;
@@ -622,6 +628,15 @@ export function Popover({
     setAt({ top, left });
   }, [anchor]);
 
+  // A newly mounted panel starts hidden while it is measured. Focus only
+  // after positioning makes it visible, so keyboard input reaches the list.
+  useEffect(() => {
+    if (!focusOnOpen || !at) return;
+    const target = panel.current?.querySelector<HTMLElement>('[tabindex="0"]')
+      ?? panel.current?.querySelector<HTMLElement>('button, input, select, textarea');
+    target?.focus({ preventScroll: true });
+  }, [at, focusOnOpen]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -636,11 +651,16 @@ export function Popover({
     // closes this.
     window.addEventListener("mousedown", onDown, true);
     // Scrolling a board would leave the panel behind, pointing at nothing.
-    window.addEventListener("scroll", onClose, true);
+    function onScroll(e: Event) {
+      // Lists inside a popover must scroll without closing themselves.
+      if (e.target instanceof Node && panel.current?.contains(e.target)) return;
+      onClose();
+    }
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("mousedown", onDown, true);
-      window.removeEventListener("scroll", onClose, true);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, [anchor, onClose]);
 
@@ -656,6 +676,7 @@ export function Popover({
         visibility: at ? "visible" : "hidden",
       }}
       role="dialog"
+      aria-label={label}
     >
       {children}
     </div>,
@@ -686,68 +707,259 @@ export function Stat({
   );
 }
 
+function SelectChevron() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-[var(--ink-muted)]"
+      viewBox="0 0 16 16"
+      fill="none"
+    >
+      <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function ColumnPill({
   columnId,
   columns,
   onChange,
   disabled,
+  onManageColumns,
 }: {
-  /** Which column the task stands in; null is work nobody has sorted. */
   columnId: string | null;
-  /**
-   * The board's columns, passed down rather than read here: a board draws
-   * hundreds of these, and each one reaching for the open project on its own
-   * is hundreds of subscriptions to one answer.
-   */
   columns: ProjectColumn[];
   onChange: (columnId: string | null) => void;
   disabled?: boolean;
+  /** Only owners receive a shortcut to the project's column settings. */
+  onManageColumns?: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const anchor = useRef<HTMLButtonElement>(null);
+  const listId = useId();
   const meta = columnMeta(columns, columnId);
-  const color = meta?.color ?? UNSORTED_COLOR;
-  // Unsorted is offered only to a task that is unsorted. It is where work ends
-  // up when its column is deleted, not somewhere anybody files work on purpose
-  // — but a task standing there has to be able to say so.
-  const options = [
-    ...(meta ? [] : [{ value: UNSORTED, label: UNSORTED_LABEL }]),
-    ...columns.map((c) => ({ value: c.id, label: c.name })),
-  ];
-
-  // A tracker with no columns has nowhere to move a task to, so the pill says
-  // where the task stands and stops there.
-  if (columns.length === 0) {
+  const color = safeColor(meta?.color) ?? UNSORTED_COLOR;
+  const label = meta?.name ?? UNSORTED_LABEL;
+  const chip = (
+    <span
+      className="min-w-0 truncate rounded-full px-2 py-0.5"
+      style={{ background: color, color: contrastText(color) }}
+    >
+      {label}
+    </span>
+  );
+  if (disabled || (!columns.length && !onManageColumns)) {
     return (
-      <span
-        className="flex items-center gap-1.5 truncate rounded-[var(--radius)] border border-[var(--hairline)] px-2 py-1 text-[0.75rem] font-medium text-[var(--ink-secondary)]"
-        title="This tracker has no columns yet"
-      >
-        <span
-          className="h-1.5 w-1.5 shrink-0 rounded-full"
-          style={{ background: color }}
-        />
-        {meta?.name ?? UNSORTED_LABEL}
+      <span className="flex min-w-0 items-center text-[0.75rem]" title={label}>
+        {chip}
       </span>
     );
   }
-
+  const options = [
+    ...(meta
+      ? []
+      : [{ id: UNSORTED, name: UNSORTED_LABEL, color: UNSORTED_COLOR }]),
+    ...columns,
+  ];
   return (
-    <div className="relative flex items-center">
-      <span
-        className="pointer-events-none absolute left-2 h-1.5 w-1.5 shrink-0 rounded-full"
-        style={{ background: color }}
-      />
-      <LazySelect
-        value={columnId ?? UNSORTED}
-        onChange={(next) => onChange(next === UNSORTED ? null : next)}
-        options={options}
-        disabled={disabled}
-        className="select truncate pl-[1.375rem] font-medium"
-        style={{
-          background: `color-mix(in srgb, ${color} 12%, var(--surface-raised))`,
-          borderColor: `color-mix(in srgb, ${color} 28%, transparent)`,
+    <>
+      <button
+        ref={anchor}
+        type="button"
+        className="relative flex w-full min-w-0 items-center gap-1 rounded-[var(--radius)] border border-[var(--hairline)] py-1 pl-1 pr-6 text-left text-[0.75rem] font-medium hover:border-[var(--baseline)]"
+        aria-label={`Task column: ${label}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? listId : undefined}
+        title={label}
+        onClick={() => setOpen((value) => !value)}
+        onKeyDown={(e) => {
+          if (["ArrowDown", "ArrowUp"].includes(e.key)) {
+            e.preventDefault();
+            setOpen(true);
+          }
         }}
-        ariaLabel="Tracker column"
-      />
+      >
+        {chip}
+        <SelectChevron />
+      </button>
+      {open && (
+        <Popover
+          label="Task columns"
+          focusOnOpen
+          anchor={anchor}
+          onClose={() => setOpen(false)}
+        >
+          <ColumnMenu
+            listId={listId}
+            options={options}
+            selectedId={meta?.id ?? UNSORTED}
+            onChange={(id) => {
+              setOpen(false);
+              anchor.current?.focus({ preventScroll: true });
+              if (id !== (meta?.id ?? UNSORTED))
+                onChange(id === UNSORTED ? null : id);
+            }}
+            onClose={() => {
+              setOpen(false);
+              anchor.current?.focus({ preventScroll: true });
+            }}
+            onLeave={(target) => {
+              if (
+                !(target instanceof Node) ||
+                !anchor.current?.contains(target)
+              )
+                setOpen(false);
+            }}
+            onManageColumns={
+              onManageColumns
+                ? () => {
+                    setOpen(false);
+                    onManageColumns();
+                  }
+                : undefined
+            }
+          />
+        </Popover>
+      )}
+    </>
+  );
+}
+
+function ColumnMenu({
+  listId,
+  options,
+  selectedId,
+  onChange,
+  onClose,
+  onLeave,
+  onManageColumns,
+}: {
+  listId: string;
+  options: { id: string; name: string; color: string }[];
+  selectedId: string;
+  onChange: (id: string) => void;
+  onClose: () => void;
+  onLeave: (target: EventTarget | null) => void;
+  onManageColumns?: () => void;
+}) {
+  const initial = Math.max(
+    0,
+    options.findIndex((option) => option.id === selectedId),
+  );
+  const [active, setActive] = useState(initial);
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  function revealOption(index: number) {
+    const button = buttons.current[index];
+    const list = button?.parentElement;
+    if (!button || !list) return;
+    const top = button.getBoundingClientRect().top - list.getBoundingClientRect().top + list.scrollTop;
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (top + button.offsetHeight > list.scrollTop + list.clientHeight)
+      list.scrollTop = top + button.offsetHeight - list.clientHeight;
+  }
+  useLayoutEffect(() => { revealOption(initial); }, [initial]);
+  return (
+    <div
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+      onBlur={(e) => {
+        // A native pointer blur can have no next focus target. Closing here
+        // would remove Edit columns before its click fires. Outside pointer
+        // presses are already handled by Popover; keep keyboard focus exits.
+        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget))
+          onLeave(e.relatedTarget);
+      }}
+    >
+      <div
+        id={listId}
+        role="listbox"
+        aria-label="Task column"
+        className="thin-scroll max-h-[min(20rem,50vh)] overflow-y-auto"
+        onKeyDown={(e) => {
+          let next = active;
+          if (e.key === "ArrowDown") next = (active + 1) % options.length;
+          else if (e.key === "ArrowUp")
+            next = (active - 1 + options.length) % options.length;
+          else if (e.key === "Home") next = 0;
+          else if (e.key === "End") next = options.length - 1;
+          else if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+            return;
+          } else return;
+          e.preventDefault();
+          setActive(next);
+          buttons.current[next]?.focus({ preventScroll: true });
+          revealOption(next);
+        }}
+      >
+        {options.map((option, index) => {
+          const color = safeColor(option.color) ?? UNSORTED_COLOR;
+          const selected = option.id === selectedId;
+          return (
+            <button
+              key={option.id}
+              ref={(node) => {
+                buttons.current[index] = node;
+              }}
+              type="button"
+              role="option"
+              aria-selected={selected}
+              tabIndex={index === active ? 0 : -1}
+              onFocus={() => setActive(index)}
+              onClick={() => onChange(option.id)}
+              className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-[var(--plane)] ${selected ? "bg-[var(--plane)]" : ""}`}
+            >
+              <span
+                className="min-w-0 truncate rounded-full px-2.5 py-1 font-medium"
+                style={{ background: color, color: contrastText(color) }}
+              >
+                {option.name}
+              </span>
+              {selected && (
+                <span
+                  className="ml-auto text-[var(--ink-secondary)]"
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      {onManageColumns && (
+        <div className="mt-1 border-t border-[var(--hairline)] pt-1">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-2 text-left text-xs text-[var(--ink-secondary)] hover:bg-[var(--plane)] hover:text-[var(--ink)]"
+            onClick={onManageColumns}
+          >
+            Edit columns
+            <svg
+              aria-hidden="true"
+              width="16"
+              height="16"
+              viewBox="0 0 14 14"
+              fill="none"
+            >
+              <path
+                d="M9.2 1.8l3 3L4.8 12.2 1.4 12.6l.4-3.4 7.4-7.4z"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -760,8 +972,6 @@ export function ColumnPill({
  */
 export function PriorityMark({ priority }: { priority: TaskPriority }) {
   const meta = priorityMeta(priority);
-  // Ordinary work is the common case and says nothing; a row is quieter for it.
-  if (priority === "MEDIUM") return null;
   return (
     <span
       className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold leading-none"
@@ -798,7 +1008,7 @@ export function PrioritySelect({
         value={priority}
         onChange={(e) => onChange(e.target.value as TaskPriority)}
         disabled={disabled}
-        className="select truncate pl-[1.375rem] font-medium"
+        className="select select-with-dot truncate font-medium"
         aria-label="Task priority"
       >
         {PRIORITY_OPTIONS.map((p) => (
@@ -807,6 +1017,7 @@ export function PrioritySelect({
           </option>
         ))}
       </select>
+      <SelectChevron />
     </div>
   );
 }

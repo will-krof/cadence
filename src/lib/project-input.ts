@@ -13,6 +13,7 @@ const TOOLS = [
   "hasSprints",
   "hasRoles",
   "hasReports",
+  "hasMetrics",
 ] as const;
 
 /** The optional halves of a task, each of which a project can put away. */
@@ -28,9 +29,34 @@ const TASK_FIELDS = [
   "taskHasEstimate",
 ] as const;
 
-export type ProjectFlag = (typeof TOOLS)[number] | (typeof TASK_FIELDS)[number];
+export type ProjectFlag =
+  | (typeof TOOLS)[number]
+  | (typeof TASK_FIELDS)[number]
+  | "metricsProgress"
+  | "metricsOverdue"
+  | "metricsCompleted"
+  | "metricsCompletionTime"
+  | "metricsWorkload"
+  | "metricsBurndown";
 
-const FLAGS: readonly ProjectFlag[] = [...TOOLS, ...TASK_FIELDS];
+const METRIC_FIELDS = [
+  "metricsProgress",
+  "metricsOverdue",
+  "metricsCompleted",
+  "metricsCompletionTime",
+  "metricsWorkload",
+  "metricsBurndown",
+] as const;
+const FLAGS = [...TOOLS, ...TASK_FIELDS, ...METRIC_FIELDS] as const;
+
+export function parseProjectType(
+  body: Record<string, unknown>,
+): { data: { projectType?: "PROJECT" | "PRODUCT" } } | { error: string } {
+  if (body.projectType === undefined) return { data: {} };
+  if (body.projectType !== "PROJECT" && body.projectType !== "PRODUCT")
+    return { error: "Choose Project or Product" };
+  return { data: { projectType: body.projectType } };
+}
 
 /**
  * Every flag the body mentions, as it means it. A flag left out is left alone —
@@ -39,7 +65,7 @@ const FLAGS: readonly ProjectFlag[] = [...TOOLS, ...TASK_FIELDS];
  */
 export function parseFlags(
   body: Record<string, unknown>,
-  { fillIn = false }: { fillIn?: boolean } = {}
+  { fillIn = false }: { fillIn?: boolean } = {},
 ): Partial<Record<ProjectFlag, boolean>> {
   const out: Partial<Record<ProjectFlag, boolean>> = {};
   for (const flag of FLAGS) {
@@ -67,8 +93,10 @@ function day(value: unknown): Date | null {
  * saying it doesn't add up.
  */
 export function parseSpan(
-  body: Record<string, unknown>
-): { data: { startDate?: Date | null; endDate?: Date | null } } | { error: string } {
+  body: Record<string, unknown>,
+):
+  | { data: { startDate?: Date | null; endDate?: Date | null } }
+  | { error: string } {
   const data: { startDate?: Date | null; endDate?: Date | null } = {};
 
   for (const key of ["startDate", "endDate"] as const) {

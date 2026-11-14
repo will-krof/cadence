@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Wordmark } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { AcceptInvite } from "@/components/AcceptInvite";
 import { INVITE_DAYS, inviteHasExpired } from "@/lib/invite";
 import { ROLE_TOOLS, accessOf } from "@/lib/types";
@@ -29,7 +28,7 @@ export default async function InvitePage({
   const { token } = await params;
 
   const member = await prisma.projectMember.findFirst({
-    where: { inviteToken: token, inviteRevoked: false },
+    where: { inviteToken: token, inviteRevoked: false, project: { user: { bannedAt: null } } },
     select: {
       inviteExpiresAt: true,
       project: {
@@ -97,7 +96,6 @@ export default async function InvitePage({
         <Link href="/">
           <Wordmark />
         </Link>
-        <ThemeToggle />
       </header>
 
       <main className="flex flex-1 items-start justify-center px-5 py-8 sm:items-center sm:py-12">

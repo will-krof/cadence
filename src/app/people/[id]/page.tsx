@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { getViewer, memberProjectIds } from "@/lib/viewer";
 import { developerScope } from "@/lib/api-auth";
 import { Wordmark } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { ProfileResume, ResumeProject } from "@/components/ProfileResume";
 import { ShareProfile } from "@/components/ShareProfile";
 import { EmploymentType, WorkLocation, WorkStatus } from "@/lib/types";
@@ -127,7 +126,6 @@ export default async function ProfilePage({
           <Link href="/app" className="btn-secondary">
             Open app
           </Link>
-          <ThemeToggle />
         </div>
       </header>
 

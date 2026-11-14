@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useFeedback } from "@/components/Feedback";
 import { Field, SettingToggle } from "@/components/ui";
 import { addDays, diffDays, formatRange, toISODate } from "@/lib/dates";
-import {
-  PROJECT_TOOL_TOGGLES,
-  Project,
-  TASK_FIELD_TOGGLES,
-} from "@/lib/types";
+import { PROJECT_METRICS } from "@/lib/metrics-types";
+import { PROJECT_TOOL_TOGGLES, Project, TASK_FIELD_TOGGLES } from "@/lib/types";
 
 /** Everything the settings form writes: the project's shape, in one payload. */
 export interface ProjectSettingsValues {
@@ -20,6 +17,14 @@ export interface ProjectSettingsValues {
   hasSprints: boolean;
   hasRoles: boolean;
   hasReports: boolean;
+  projectType: "PROJECT" | "PRODUCT";
+  hasMetrics: boolean;
+  metricsProgress: boolean;
+  metricsOverdue: boolean;
+  metricsCompleted: boolean;
+  metricsCompletionTime: boolean;
+  metricsWorkload: boolean;
+  metricsBurndown: boolean;
   startDate: string | null;
   endDate: string | null;
   taskHasPriority: boolean;
@@ -54,6 +59,14 @@ function draftOf(project: Project): Draft {
     hasSprints: project.hasSprints,
     hasRoles: project.hasRoles,
     hasReports: project.hasReports,
+    projectType: project.projectType,
+    hasMetrics: project.hasMetrics,
+    metricsProgress: project.metricsProgress,
+    metricsOverdue: project.metricsOverdue,
+    metricsCompleted: project.metricsCompleted,
+    metricsCompletionTime: project.metricsCompletionTime,
+    metricsWorkload: project.metricsWorkload,
+    metricsBurndown: project.metricsBurndown,
     startDate: dateValue(project.startDate),
     endDate: dateValue(project.endDate),
     taskHasPriority: project.taskHasPriority,
@@ -70,10 +83,11 @@ function draftOf(project: Project): Draft {
 
 /** Which section each answer belongs to, so a section can say it has changed. */
 const SECTION_KEYS = {
-  about: ["name", "description"],
+  about: ["name", "description", "projectType"],
   dates: ["startDate", "endDate"],
   tools: PROJECT_TOOL_TOGGLES.map((t) => t.key),
   task: TASK_FIELD_TOGGLES.map((t) => t.key),
+  metrics: PROJECT_METRICS.map((metric) => metric.flag),
 } satisfies Record<string, (keyof Draft)[]>;
 
 /**
@@ -88,12 +102,14 @@ const SECTION_KEYS = {
  * touched; and keeps Save, Cancel and the count of what is unsaved pinned to
  * the bottom of the screen where they can always be reached.
  *
- * Nothing is written until Save: leaving with changes asks first, Escape is the
- * way out, and ⌘/Ctrl+Enter is the way through.
+ * Draft details are written on Save; the separate management sections save
+ * their own rows immediately. Leaving with draft changes asks first, Escape
+ * is the way out, and ⌘/Ctrl+Enter is the way through.
  */
 export function ProjectSettingsForm({
   project,
   tagEditor,
+  management,
   onCancel,
   onSave,
 }: {
@@ -104,6 +120,8 @@ export function ProjectSettingsForm({
    * project, like a sprint, not an answer this form is collecting.
    */
   tagEditor?: React.ReactNode;
+  /** Live project management sits outside the draft form to allow its own forms. */
+  management?: React.ReactNode;
   onCancel: () => void;
   onSave: (values: ProjectSettingsValues) => Promise<void>;
 }) {
@@ -116,6 +134,7 @@ export function ProjectSettingsForm({
   // telling you off for something you are in the middle of doing.
   const [submitted, setSubmitted] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const formId = useId();
   const leaving = useRef(false);
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {
@@ -125,9 +144,9 @@ export function ProjectSettingsForm({
   const changed = useMemo(
     () =>
       (Object.keys(initial) as (keyof Draft)[]).filter(
-        (key) => initial[key] !== draft[key]
+        (key) => initial[key] !== draft[key],
       ),
-    [initial, draft]
+    [initial, draft],
   );
   const dirty = changed.length > 0;
   const changedIn = (keys: readonly (keyof Draft)[]) =>
@@ -208,210 +227,275 @@ export function ProjectSettingsForm({
   });
 
   return (
-    <form ref={formRef} className="flex flex-col gap-4" onSubmit={submit}>
-      <Section
-        title="Name and description"
-        hint="What this project is called, and what it is about."
-        changed={changedIn(SECTION_KEYS.about)}
+    <div className="flex flex-col gap-4">
+      <form
+        id={formId}
+        ref={formRef}
+        className="flex flex-col gap-4"
+        onSubmit={submit}
       >
-        <Field label="Project name">
-          <input
-            autoFocus
-            value={draft.name}
-            onChange={(e) => set("name", e.target.value)}
-            className="input"
-            aria-invalid={submitted && Boolean(nameError)}
-            aria-describedby={nameError ? "project-name-error" : undefined}
-          />
-        </Field>
-        {submitted && nameError && (
-          <p
-            id="project-name-error"
-            className="text-[0.6875rem] text-[var(--danger)]"
-          >
-            {nameError}
-          </p>
-        )}
-
-        <Field label="Short description">
-          <textarea
-            value={draft.description}
-            onChange={(e) => set("description", e.target.value)}
-            className="input min-h-16 resize-y"
-            placeholder="What is this project about…"
-          />
-        </Field>
-      </Section>
-
-      <Section
-        title="When it runs"
-        hint="Leave both empty to let the work say it — the earliest task to the latest."
-        changed={changedIn(SECTION_KEYS.dates)}
-      >
-        <div className="flex flex-col gap-3.5 sm:flex-row">
-          <Field label="Start date" className="flex-1">
-            <input
-              type="date"
-              value={draft.startDate}
-              onChange={(e) => set("startDate", e.target.value)}
-              className="input"
-              aria-invalid={Boolean(dateError)}
-            />
-          </Field>
-          <Field label="End date" className="flex-1">
-            <input
-              type="date"
-              // A span is filled in start-first, and the browser can say so:
-              // the end can't be offered a day before the project begins.
-              min={draft.startDate || undefined}
-              value={draft.endDate}
-              onChange={(e) => set("endDate", e.target.value)}
-              className="input"
-              aria-invalid={Boolean(dateError)}
-            />
-          </Field>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          {dateError ? (
-            <p className="text-[0.6875rem] text-[var(--danger)]">{dateError}</p>
-          ) : span ? (
-            <p className="text-[0.6875rem] text-[var(--ink-secondary)]">
-              {span}
-            </p>
-          ) : (
-            <p className="text-[0.6875rem] text-[var(--ink-muted)]">
-              Nothing stated — the tasks decide.
-            </p>
-          )}
-          {/* The common spans, so a quarter doesn't have to be counted out on
-              a date picker. Each one starts from the date already there. */}
-          {!dateError &&
-            SPANS.map((preset) => (
-              <button
-                key={preset.days}
-                type="button"
-                onClick={() => {
-                  const start = draft.startDate || toISODate(new Date());
-                  set("startDate", start);
-                  set(
-                    "endDate",
-                    toISODate(addDays(new Date(start), preset.days - 1))
-                  );
-                }}
-                className="chip transition hover:text-[var(--ink)]"
-              >
-                {preset.label}
-              </button>
-            ))}
-          {(draft.startDate || draft.endDate) && (
-            <button
-              type="button"
-              onClick={() => {
-                set("startDate", "");
-                set("endDate", "");
-              }}
-              className="chip transition hover:text-[var(--danger)]"
-            >
-              Clear dates
-            </button>
-          )}
-        </div>
-      </Section>
-
-      <Section
-        title="What this project uses"
-        hint="Only what is switched on appears in the sidebar. Everything else stays out of the way."
-        changed={changedIn(SECTION_KEYS.tools)}
-      >
-        <div className="grid gap-2 sm:grid-cols-2">
-          {PROJECT_TOOL_TOGGLES.map((tool) => (
-            <SettingToggle
-              key={tool.key}
-              checked={draft[tool.key]}
-              onChange={(v) => set(tool.key, v)}
-              label={tool.label}
-              hint={tool.hint}
-              note={
-                // The one pair that can be set against each other: a timeline
-                // is drawn from dates the tasks aren't being asked for.
-                tool.key === "hasTimeline" &&
-                draft.hasTimeline &&
-                !draft.taskHasDates ? (
-                  <span className="text-[var(--danger)]">
-                    Tasks aren’t being asked for dates — switch those back on
-                    below, or the chart has nothing to draw.
+        <Section
+          title="Name and description"
+          hint="What this project is called, and what it is about."
+          changed={changedIn(SECTION_KEYS.about)}
+        >
+          <fieldset>
+            <legend className="field-label mb-2">Project type</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {(["PROJECT", "PRODUCT"] as const).map((kind) => (
+                <label
+                  key={kind}
+                  className="flex cursor-pointer items-center gap-2 rounded-[var(--radius)] border border-[var(--hairline)] p-3 text-[0.8125rem]"
+                >
+                  <input
+                    type="radio"
+                    name={`project-type-${formId}`}
+                    value={kind}
+                    checked={draft.projectType === kind}
+                    onChange={() => set("projectType", kind)}
+                    className="peer sr-only"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-4 w-4 items-center justify-center rounded border text-[0.625rem] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--accent)] ${draft.projectType === kind ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-on)]" : "border-[var(--baseline)]"}`}
+                  >
+                    {draft.projectType === kind ? "✓" : ""}
                   </span>
-                ) : undefined
-              }
-            />
-          ))}
-        </div>
-        <p className="text-[0.6875rem] text-[var(--ink-muted)]">
-          The team roster isn’t a tool to switch off — every project has people.
-          Sprints and roles already made are kept when their tool goes off, and
-          are waiting where they were if it comes back.
-        </p>
-      </Section>
-
-      <Section
-        title="What a task asks for"
-        hint="A form should ask what this team actually fills in, and nothing else."
-        changed={changedIn(SECTION_KEYS.task)}
-        // Tasks live on the two boards. With neither of them on, this project
-        // has no tasks, and a page of questions about a task's fields is a
-        // page of questions about nothing — so it waits until there is
-        // somewhere for a task to be.
-        locked={
-          hasTasks
-            ? null
-            : "Switch on the Gantt chart or the task tracker above — tasks are kept on those, and until one of them is on there are none to ask about."
-        }
-      >
-        <div className="grid gap-2 sm:grid-cols-2">
-          {TASK_FIELD_TOGGLES.map((toggle) => (
-            <SettingToggle
-              key={toggle.key}
-              checked={draft[toggle.key]}
-              onChange={(v) => set(toggle.key, v)}
-              disabled={!hasTasks}
-              label={toggle.label}
-              hint={toggle.hint}
-            />
-          ))}
-        </div>
-
-        {/* Tags are the one field whose answer is the project's own, so the
-            list of them is set up right under the switch that shows it. */}
-        {hasTasks && draft.taskHasTags && tagEditor}
-
-        {/* The answer to "so what will the form look like?", without having to
-            save and go and open one. */}
-        {hasTasks && (
-          <div className="rounded-[var(--radius)] border border-dashed border-[var(--hairline)] p-3">
-            <p className="field-label mb-1.5">A task will ask for</p>
-            <div className="flex flex-wrap gap-1.5">
-              {ALWAYS_ASKED.map((label) => (
-                <span key={label} className="chip">
-                  {label}
-                </span>
-              ))}
-              {TASK_FIELD_TOGGLES.filter((t) => draft[t.key]).map((t) => (
-                <span key={t.key} className="chip chip-accent">
-                  {t.label}
-                </span>
+                  {kind === "PROJECT" ? "Project" : "Product"}
+                </label>
               ))}
             </div>
+          </fieldset>
+
+          <Field label="Project name">
+            <input
+              autoFocus
+              value={draft.name}
+              onChange={(e) => set("name", e.target.value)}
+              className="input"
+              aria-invalid={submitted && Boolean(nameError)}
+              aria-describedby={nameError ? "project-name-error" : undefined}
+            />
+          </Field>
+          {submitted && nameError && (
+            <p
+              id="project-name-error"
+              className="text-[0.6875rem] text-[var(--danger)]"
+            >
+              {nameError}
+            </p>
+          )}
+
+          <Field label="Short description">
+            <textarea
+              value={draft.description}
+              onChange={(e) => set("description", e.target.value)}
+              className="input min-h-16 resize-y"
+              placeholder="What is this project about…"
+            />
+          </Field>
+        </Section>
+
+        <Section
+          title="When it runs"
+          hint="Leave both empty to let the work say it — the earliest task to the latest."
+          changed={changedIn(SECTION_KEYS.dates)}
+        >
+          <div className="flex flex-col gap-3.5 sm:flex-row">
+            <Field label="Start date" className="flex-1">
+              <input
+                type="date"
+                value={draft.startDate}
+                onChange={(e) => set("startDate", e.target.value)}
+                className="input"
+                aria-invalid={Boolean(dateError)}
+              />
+            </Field>
+            <Field label="End date" className="flex-1">
+              <input
+                type="date"
+                // A span is filled in start-first, and the browser can say so:
+                // the end can't be offered a day before the project begins.
+                min={draft.startDate || undefined}
+                value={draft.endDate}
+                onChange={(e) => set("endDate", e.target.value)}
+                className="input"
+                aria-invalid={Boolean(dateError)}
+              />
+            </Field>
           </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            {dateError ? (
+              <p className="text-[0.6875rem] text-[var(--danger)]">
+                {dateError}
+              </p>
+            ) : span ? (
+              <p className="text-[0.6875rem] text-[var(--ink-secondary)]">
+                {span}
+              </p>
+            ) : (
+              <p className="text-[0.6875rem] text-[var(--ink-muted)]">
+                Nothing stated — the tasks decide.
+              </p>
+            )}
+            {/* The common spans, so a quarter doesn't have to be counted out on
+              a date picker. Each one starts from the date already there. */}
+            {!dateError &&
+              SPANS.map((preset) => (
+                <button
+                  key={preset.days}
+                  type="button"
+                  onClick={() => {
+                    const start = draft.startDate || toISODate(new Date());
+                    set("startDate", start);
+                    set(
+                      "endDate",
+                      toISODate(addDays(new Date(start), preset.days - 1)),
+                    );
+                  }}
+                  className="chip transition hover:text-[var(--ink)]"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            {(draft.startDate || draft.endDate) && (
+              <button
+                type="button"
+                onClick={() => {
+                  set("startDate", "");
+                  set("endDate", "");
+                }}
+                className="chip transition hover:text-[var(--danger)]"
+              >
+                Clear dates
+              </button>
+            )}
+          </div>
+        </Section>
+
+        <Section
+          title="What this project uses"
+          hint="Only what is switched on appears in the sidebar. Everything else stays out of the way."
+          changed={changedIn(SECTION_KEYS.tools)}
+        >
+          <div className="grid gap-2 sm:grid-cols-2">
+            {PROJECT_TOOL_TOGGLES.map((tool) => (
+              <SettingToggle
+                key={tool.key}
+                checked={draft[tool.key]}
+                onChange={(v) => set(tool.key, v)}
+                label={tool.label}
+                hint={tool.hint}
+                note={
+                  // The one pair that can be set against each other: a timeline
+                  // is drawn from dates the tasks aren't being asked for.
+                  tool.key === "hasTimeline" &&
+                  draft.hasTimeline &&
+                  !draft.taskHasDates ? (
+                    <span className="text-[var(--danger)]">
+                      Tasks aren’t being asked for dates — switch those back on
+                      below, or the chart has nothing to draw.
+                    </span>
+                  ) : undefined
+                }
+              />
+            ))}
+          </div>
+          <p className="text-[0.6875rem] text-[var(--ink-muted)]">
+            The team roster isn’t a tool to switch off — every project has
+            people. Sprints and roles already made are kept when their tool goes
+            off, and are waiting where they were if it comes back.
+          </p>
+        </Section>
+
+        {draft.hasMetrics && (
+          <Section
+            title="Metrics"
+            hint="Choose the indicators shown on this project's Metrics page. Values are calculated from its tasks."
+            changed={changedIn(SECTION_KEYS.metrics)}
+          >
+            {draft.projectType === "PROJECT" ? (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {PROJECT_METRICS.map((metric) => (
+                  <SettingToggle
+                    key={metric.key}
+                    checked={draft[metric.flag]}
+                    onChange={(value) => set(metric.flag, value)}
+                    label={metric.label}
+                    hint={metric.hint}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="t-small">
+                Product metrics will be added next, with manual entry for a
+                selected period. Project metrics are not shown for products.
+              </p>
+            )}
+          </Section>
         )}
 
-        <p className="text-[0.6875rem] text-[var(--ink-muted)]">
-          A field put away stops being asked about — on the form, on the card
-          and on the boards — but nothing already written is lost: switch it
-          back on and it is all still there. Tasks keep their dates whatever
-          this says, because the timeline is drawn from them.
-        </p>
-      </Section>
+        <Section
+          title="What a task asks for"
+          hint="A form should ask what this team actually fills in, and nothing else."
+          changed={changedIn(SECTION_KEYS.task)}
+          // Tasks live on the two boards. With neither of them on, this project
+          // has no tasks, and a page of questions about a task's fields is a
+          // page of questions about nothing — so it waits until there is
+          // somewhere for a task to be.
+          locked={
+            hasTasks
+              ? null
+              : "Switch on the Gantt chart or the task tracker above — tasks are kept on those, and until one of them is on there are none to ask about."
+          }
+        >
+          <div className="grid gap-2 sm:grid-cols-2">
+            {TASK_FIELD_TOGGLES.map((toggle) => (
+              <SettingToggle
+                key={toggle.key}
+                checked={draft[toggle.key]}
+                onChange={(v) => set(toggle.key, v)}
+                disabled={!hasTasks}
+                label={toggle.label}
+                hint={toggle.hint}
+              />
+            ))}
+          </div>
+
+          {/* Tags are the one field whose answer is the project's own, so the
+            list of them is set up right under the switch that shows it. */}
+          {hasTasks && draft.taskHasTags && tagEditor}
+
+          {/* The answer to "so what will the form look like?", without having to
+            save and go and open one. */}
+          {hasTasks && (
+            <div className="rounded-[var(--radius)] border border-dashed border-[var(--hairline)] p-3">
+              <p className="field-label mb-1.5">A task will ask for</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ALWAYS_ASKED.map((label) => (
+                  <span key={label} className="chip">
+                    {label}
+                  </span>
+                ))}
+                {TASK_FIELD_TOGGLES.filter((t) => draft[t.key]).map((t) => (
+                  <span key={t.key} className="chip chip-accent">
+                    {t.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="text-[0.6875rem] text-[var(--ink-muted)]">
+            A field put away stops being asked about — on the form, on the card
+            and on the boards — but nothing already written is lost: switch it
+            back on and it is all still there. Tasks keep their dates whatever
+            this says, because the timeline is drawn from them.
+          </p>
+        </Section>
+      </form>
+      {management}
 
       {/* Pinned to the foot of the card: on a form this long, the way out
           should not depend on where the scroll happens to be. */}
@@ -430,10 +514,10 @@ export function ProjectSettingsForm({
                 {changed.length} unsaved change
                 {changed.length === 1 ? "" : "s"}
               </span>
-              {" · nothing is written until you save"}
+              {" · project details are saved when you choose Save changes"}
             </>
           ) : (
-            "No changes yet."
+            "No unsaved project details."
           )}
         </p>
         {dirty && (
@@ -450,14 +534,17 @@ export function ProjectSettingsForm({
         </button>
         <button
           type="submit"
+          form={formId}
           className="btn-primary"
           disabled={pending || !dirty}
-          title={dirty ? "Save changes (⌘/Ctrl + Enter)" : "Nothing to save yet"}
+          title={
+            dirty ? "Save changes (⌘/Ctrl + Enter)" : "Nothing to save yet"
+          }
         >
           {pending ? "Saving…" : "Save changes"}
         </button>
       </div>
-    </form>
+    </div>
   );
 }
 

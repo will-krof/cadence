@@ -127,7 +127,7 @@ export const PRIORITY_OPTIONS: {
   color: string;
 }[] = [
   { value: "LOW", label: "Low", mark: "↓", color: "#898781" },
-  { value: "MEDIUM", label: "Medium", mark: "–", color: "#2a78d6" },
+  { value: "MEDIUM", label: "Medium", mark: "–", color: "var(--priority-medium)" },
   { value: "HIGH", label: "High", mark: "↑", color: "#ec835a" },
   { value: "URGENT", label: "Urgent", mark: "!", color: "#e34948" },
 ];
@@ -359,6 +359,14 @@ export interface Project {
   hasRoles: boolean;
   /** Whether it keeps a screen of its own numbers. */
   hasReports: boolean;
+  projectType: "PROJECT" | "PRODUCT";
+  hasMetrics: boolean;
+  metricsProgress: boolean;
+  metricsOverdue: boolean;
+  metricsCompleted: boolean;
+  metricsCompletionTime: boolean;
+  metricsWorkload: boolean;
+  metricsBurndown: boolean;
   /**
    * When the project runs, said by hand. Null leaves the span to the work: the
    * earliest task to the latest, which is what a project on sprints wants.
@@ -478,7 +486,8 @@ export const PROJECT_TOOL_TOGGLES: {
     | "hasSprints"
     | "hasWiki"
     | "hasRoles"
-    | "hasReports";
+    | "hasReports"
+    | "hasMetrics";
   label: string;
   hint: string;
 }[] = [
@@ -501,6 +510,11 @@ export const PROJECT_TOOL_TOGGLES: {
     key: "hasWiki",
     label: "Wiki",
     hint: "Pages the project writes down for itself",
+  },
+  {
+    key: "hasMetrics",
+    label: "Metrics",
+    hint: "Choose the key indicators shown for this project",
   },
   {
     key: "hasReports",

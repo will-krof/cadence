@@ -51,7 +51,7 @@ can't change them. Cadence hands you an empty tracker and a text field.
 
 - **Name them.** *Backlog*, *Building*, *In review*, *Blocked*, *Shipped* — or
   whatever your team already says out loud. Up to twenty of them.
-- **Colour them.** Eight colours that tell each other apart on both themes. The
+- **Colour them.** Eight colours that tell each other apart in the dark palette. The
   colour is a dot beside the name, never instead of it.
 - **Order them.** Move a column left or right and the whole board — cards,
   counts, the timeline's tally, the reports — moves with it.
@@ -71,6 +71,9 @@ with Done already ticked.
 <br />
 
 ## Quick start
+
+For a hosted installation without a local checkout, follow the
+[Vercel + PostgreSQL deployment guide](docs/vercel.md).
 
 ```bash
 git clone https://github.com/will-krof/cadence.git
@@ -113,7 +116,7 @@ Cadence design.
 <td colspan="2"><img src="docs/screenshots/cadence-dark.webp" alt="Cadence timeline in the navy dark theme" /></td>
 </tr>
 <tr>
-<td colspan="2"><b>Dark theme.</b> The same timeline and controls in a deeper navy palette. The theme toggle remembers your choice in the browser.</td>
+<td colspan="2"><b>Dark theme.</b> The navy palette is used throughout the app. No theme switch is offered.</td>
 </tr>
 </table>
 
@@ -333,14 +336,41 @@ plans around them, so a colleague can see them.
 
 <br />
 
-One badge above admin, and it buys exactly one thing: a panel at the foot of the
-sidebar with counts of how the install is being used — how many admins there are,
-how many projects and people they have between them, and the per-workspace
-numbers. No names, no emails, no project titles, and no reach whatsoever into
-anybody's workspace.
+The sidebar's **Admin panel** link opens `/admin`. Only the sole superadmin can
+open it or call its APIs. It lists workspace accounts created through Sign up
+(name, email, registration date and access status); invited-member logins are
+excluded. Search, status filters, sorting and pagination help manage the list.
+There is no impersonation or access to another account's project contents.
+
+- **Ban** preserves data, blocks owner and invited-member access to the workspace,
+  and ends their sessions. **Restore access** permits a fresh sign-in.
+- **Sign out everywhere** ends current owner/member sessions without blocking a
+  fresh sign-in.
+- User deletion is unavailable to the superadmin, both in the interface and API.
+  The former DELETE endpoint returns 405 and PATCH rejects a DELETE action.
+  A compromised superadmin session cannot use moderation to erase workspaces.
+- The superadmin cannot ban or delete themselves, including through account
+  settings. The panel cannot grant the superadmin role.
+
+Daily registration charts cover 7, 30, 90 or 365 days in UTC, including zero days.
+Existing accounts are backfilled when the migration runs; earlier deleted
+accounts cannot be reconstructed. Anonymous daily totals remain after future
+account deletions. Database insert triggers count registrations transactionally
+(including operator-created workspace accounts); preserve these triggers when
+rebuilding the User table in a future SQLite migration.
+
+Recent moderation actions record action, time and optional ban reason. Deleting
+an account clears its identity relationship from the audit log; daily totals
+contain no account identifiers.
 
 It is granted from the command line, never from the app, so nothing in the app
 can hand it out:
+
+**Only one account can hold SUPERADMIN per installation.** A database constraint
+rejects a second superadmin, even from direct SQL or concurrent commands.
+Registration and account settings cannot grant this role. Changing the holder
+requires an operator with database access to revoke the current holder first.
+An unknown email is rejected rather than reported as a successful promotion.
 
 ```bash
 npm run make-superadmin -- you@example.com
@@ -351,6 +381,35 @@ npm run make-superadmin -- you@example.com --revoke
 
 <br />
 
+## Bug reports
+
+Every signed-in workspace owner and invited member can use **Report a bug** in
+the workspace header. The form accepts only a subject and description, with no
+files, images, media uploads or automatic project contents. Sender name and
+email/username are derived from the authenticated session, not submitted fields.
+
+The superadmin's **Bug reports** inbox in `/admin` shows sender details, submission
+time and the full plain-text report. Search by content or sender, filter by status,
+and mark tickets Open, In progress or Resolved. Other users cannot read the inbox
+or change ticket status. Report text is never rendered as HTML, Markdown or media.
+
+Reports have a 200-character subject and 10,000-character description, with a
+persistent limit of five reports per author per hour, including concurrent requests.
+Only text-only JSON is accepted; multipart uploads and attachment fields are
+rejected. Tickets retain their sender snapshot if the profile is renamed or removed.
+No ticket-deletion endpoint is provided.
+
+## Metrics
+
+Choose **Project** or **Product** in Project settings, then enable **Metrics**.
+For Project, independently switch on progress, overdue tasks, completions in seven
+days, average completion time and team workload. Their values are calculated from
+tasks and recorded completion history. The overview stays read-only.
+
+Product is selectable, with product metrics planned for the next stage using
+manual entry by period. This release starts with project indicators only.
+See [definitions, permissions and test setup](docs/metrics.md).
+
 ## Built with
 
 | | |
@@ -358,7 +417,7 @@ npm run make-superadmin -- you@example.com --revoke
 | **Next.js 16** (App Router) | Server components, route handlers under `src/app/api`, Turbopack in dev |
 | **React 19** | One board provider over the whole app; boards, roster and wiki fetched when first opened |
 | **Prisma 6 + SQLite** | The schema in `prisma/schema.prisma`, the client generated into `src/generated/prisma` |
-| **Tailwind CSS 4** | One type scale, one card, one chip, one red — themed light and dark from CSS variables |
+| **Tailwind CSS 4** | One type scale, one card, one chip, one red — a dark theme using CSS variables |
 | **Sessions in httpOnly cookies** | scrypt password hashes, hashed session tokens, rate-limited login, `no-store` on every API answer |
 
 ```
@@ -381,6 +440,7 @@ scripts/            create-account, make-superadmin, preflight
 | `npm run build` / `npm start` | Production build and server |
 | `npm run lint` | ESLint |
 | `npm run create-account -- <email> --name "Name"` | Makes a workspace account. Asks for the password without echoing it; `--password` exists for scripts, at the cost of your shell history |
+| `npm run test:admin` | Exercises moderation APIs against a disposable local PostgreSQL database |
 | `npm run make-superadmin -- <email> [--revoke]` | Grants or takes back the superadmin badge |
 
 <br />
@@ -440,3 +500,21 @@ A database created after this was written never meets it.
 <div align="center">
 <sub>Screenshots show fictional demo data. Cadence and Sketchspace share a visual language while serving different workflows.</sub>
 </div>
+
+### Admin integration checks
+
+After a PostgreSQL production build, create an empty disposable local database
+named `cadence_admin_test_<suffix>` and run:
+
+```bash
+TEST_DATABASE_URL=postgresql://localhost:5432/cadence_admin_test_example npm run test:admin
+```
+
+The test refuses non-local hosts and other database names. It creates fake
+accounts, promotes a test operator and exercises ban, session revocation and
+deletion rejection and data preservation. Never point it at a shared or production database.
+
+### Appearance
+
+Cadence uses the dark theme on every page. There is no theme switch; operating
+system preferences and previously stored light-theme choices do not change it.

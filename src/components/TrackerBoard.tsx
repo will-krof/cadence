@@ -1,6 +1,8 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ProjectColumns } from "@/components/project/ProjectColumns";
+import { ColumnForm } from "@/components/ColumnForm";
 import { useBoard } from "@/components/BoardProvider";
 import { useFeedback } from "@/components/Feedback";
 import {
@@ -100,6 +102,8 @@ export function TrackerBoard({
     reorderColumns,
   } = useBoard();
   const [assignee, setAssignee] = useState("");
+  const [managingColumns, setManagingColumns] = useState(false);
+  const openColumns = useCallback(() => setManagingColumns(true), []);
   // Which of a task's fields this project asks about, read once for the board.
   const fields = useMemo(() => taskFields(activeProject), [activeProject]);
   // Only the identity of what is being dragged lives in state; where it is
@@ -360,6 +364,7 @@ export function TrackerBoard({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {managingColumns && canManageColumns && <ProjectColumns onClose={() => setManagingColumns(false)} />}
       <div className="flex flex-wrap items-end gap-3 border-b border-[var(--hairline)] px-4 py-3 sm:px-6">
         {/* Only where the work is planned in rounds. */}
         {activeProject?.hasSprints !== false && (
@@ -458,6 +463,7 @@ export function TrackerBoard({
                       links={fields.dependencies ? links.get(task.id) : undefined}
                       columns={columns}
                       canEdit={canEdit}
+                      onManageColumns={canManageColumns ? openColumns : undefined}
                       parentTitle={
                         task.parentId ? titles.get(task.parentId) : undefined
                       }
@@ -729,87 +735,6 @@ function ColumnHeader({
   );
 }
 
-/** The form both the empty board and the end of a full one are built from. */
-function ColumnForm({
-  onCreate,
-  autoFocus = false,
-  onDone,
-}: {
-  onCreate: (input: {
-    name: string;
-    color?: string;
-    isDone?: boolean;
-  }) => Promise<unknown>;
-  autoFocus?: boolean;
-  onDone?: () => void;
-}) {
-  const [name, setName] = useState("");
-  const [color, setColor] = useState<string>(COLUMN_COLORS[0]);
-  const [isDone, setIsDone] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed || saving) return;
-    setSaving(true);
-    const created = await onCreate({ name: trimmed, color, isDone });
-    setSaving(false);
-    if (!created) return;
-    // Ready for the next one: a board is usually written a few columns at a
-    // time, and being handed an empty field back is what that wants.
-    setName("");
-    setIsDone(false);
-    onDone?.();
-  }
-
-  return (
-    <form onSubmit={submit} className="flex flex-col gap-2">
-      <input
-        value={name}
-        autoFocus={autoFocus}
-        maxLength={MAX_COLUMN_NAME}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Column name"
-        aria-label="Column name"
-        className="input"
-      />
-      <div className="flex flex-wrap gap-1.5">
-        {COLUMN_COLORS.map((swatch) => (
-          <button
-            key={swatch}
-            type="button"
-            onClick={() => setColor(swatch)}
-            className={`h-5 w-5 rounded-full border transition ${
-              color === swatch
-                ? "border-[var(--ink)]"
-                : "border-transparent hover:border-[var(--baseline)]"
-            }`}
-            style={{ background: swatch }}
-            aria-label={`Colour it ${swatch}`}
-            aria-pressed={color === swatch}
-          />
-        ))}
-      </div>
-      <label className="flex items-center gap-2 text-[0.75rem] text-[var(--ink-secondary)]">
-        <input
-          type="checkbox"
-          checked={isDone}
-          onChange={(e) => setIsDone(e.target.checked)}
-        />
-        Work here is finished
-      </label>
-      <button
-        type="submit"
-        disabled={!name.trim() || saving}
-        className="btn-primary disabled:opacity-40"
-      >
-        {saving ? "Adding…" : "Add column"}
-      </button>
-    </form>
-  );
-}
-
 /** The ghost column at the end of the board: another state, written here. */
 function AddColumn({
   onCreate,
@@ -849,7 +774,7 @@ function AddColumn({
         </button>
       </header>
       <div className="p-3">
-        <ColumnForm onCreate={onCreate} autoFocus />
+        <ColumnForm onCreate={onCreate} autoFocus onDone={() => setOpen(false)} />
       </div>
     </section>
   );
@@ -996,6 +921,7 @@ const TaskCard = memo(function TaskCard({
   dragging,
   onDragStart,
   onColumnChange,
+  onManageColumns,
   onAssign,
   onOpen,
   onEdit,
@@ -1017,6 +943,7 @@ const TaskCard = memo(function TaskCard({
   dragging: boolean;
   onDragStart: (state: DragState) => void;
   onColumnChange: (id: string, columnId: string | null) => void;
+  onManageColumns?: () => void;
   onAssign: (id: string, assigneeIds: string[]) => void;
   /** Reading the task: what a click on the card asks for. */
   onOpen: (id: string) => void;
@@ -1241,6 +1168,7 @@ const TaskCard = memo(function TaskCard({
             columns={columns}
             disabled={!canEdit}
             onChange={(columnId) => onColumnChange(task.id, columnId)}
+            onManageColumns={onManageColumns}
           />
         </div>
         <AssigneePicker

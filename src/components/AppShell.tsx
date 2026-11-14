@@ -2,9 +2,10 @@
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { BoardProvider, useBoard } from "@/components/BoardProvider";
 import { Wordmark } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ReportBugButton } from "@/components/ReportBugButton";
 import { FeedbackProvider } from "@/components/Feedback";
 import { ProjectOverview } from "@/components/ProjectOverview";
 import {
@@ -56,6 +57,7 @@ const NotesView = dynamic(
   { loading }
 );
 /** Charts and the arithmetic behind them, fetched only when they are opened. */
+const MetricsView = dynamic(() => import("@/components/MetricsView").then((m) => m.MetricsView), { loading });
 const ReportsView = dynamic(
   () => import("@/components/ReportsView").then((m) => m.ReportsView),
   { loading }
@@ -65,10 +67,6 @@ const TaskModal = dynamic(() =>
 );
 const ProjectModal = dynamic(() =>
   import("@/components/ProjectModal").then((m) => m.ProjectModal)
-);
-/** Only a superadmin ever draws this one. */
-const InstallStats = dynamic(() =>
-  import("@/components/InstallStats").then((m) => m.InstallStats)
 );
 import {
   HideableView,
@@ -80,7 +78,7 @@ import {
 import { taskFields } from "@/lib/types";
 
 /** The views a project carries. Team isn't one: it belongs to the workspace. */
-type View = "overview" | "timeline" | "tracker" | "wiki" | "reports";
+type View = "overview" | "timeline" | "tracker" | "wiki" | "reports" | "metrics";
 
 const SIDEBAR_EVENT = "cadence:sidebarchange";
 
@@ -297,6 +295,7 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
           ? (["tracker"] as View[])
           : []),
         ...(sees(project.hasWiki, "canViewWiki") ? (["wiki"] as View[]) : []),
+        ...(project.hasMetrics && (admin || sees(project.hasTimeline, "canViewTimeline") || sees(project.hasTracker, "canViewTracker")) ? (["metrics"] as View[]) : []),
         // Reports read the boards and say nothing the boards don't, so they
         // are opened by whoever can open one of them rather than by a
         // permission of their own — a switch nobody asked for is a switch to
@@ -463,7 +462,7 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <ReportBugButton />
           {member ? <MemberMenu member={member} /> : user && <AccountMenu user={user} />}
         </div>
       </header>
@@ -794,8 +793,12 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
             </label>
           )}
 
-          {/* Only a superadmin has one of these, and it holds counts alone. */}
-          {user?.role === "SUPERADMIN" && <InstallStats wide={wide} />}
+          {user?.role === "SUPERADMIN" && (
+            <Link href="/admin" aria-label="Admin panel" title="Admin panel"
+              className="mt-auto border-t border-[var(--hairline)] px-2 py-3 text-[0.75rem] font-medium text-[var(--accent)] hover:underline">
+              {wide ? "Admin panel" : "Admin"}
+            </Link>
+          )}
         </nav>
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--surface)]">
@@ -840,13 +843,13 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
                   project you expected to see.
                 </p>
               ) : (
-                <div className="flex flex-col items-center gap-3 text-center">
+                <div className="flex min-w-0 max-w-full flex-col items-center gap-3 text-center">
                   <p className="text-sm text-[var(--ink-secondary)]">
                     No projects yet.
                   </p>
                   <button
                     onClick={() => setShowNewProject(true)}
-                    className="btn-primary"
+                    className="btn-primary max-w-full whitespace-normal"
                   >
                     Create your first project
                   </button>
@@ -893,11 +896,15 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
                 <Centered>Loading project…</Centered>
               ) : activeView === "timeline" ? (
                 <GanttBoard
+                  key={activeProject.id}
+                  canManageColumns={isAdmin && may.timeline}
                   canEdit={may.timeline}
                   onNewTask={(dates) => setAddingTask({ ...dates })}
                 />
               ) : activeView === "wiki" ? (
                 <WikiView project={activeProject} canEdit={may.wiki} />
+              ) : activeView === "metrics" ? (
+                <MetricsView key={activeProject.id} project={activeProject} />
               ) : activeView === "reports" ? (
                 <ReportsView key={activeProject.id} project={activeProject} />
               ) : (

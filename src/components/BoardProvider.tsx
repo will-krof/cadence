@@ -97,6 +97,14 @@ interface ProjectInput {
   hasSprints?: boolean;
   hasRoles?: boolean;
   hasReports?: boolean;
+  projectType?: "PROJECT" | "PRODUCT";
+  hasMetrics?: boolean;
+  metricsProgress?: boolean;
+  metricsOverdue?: boolean;
+  metricsCompleted?: boolean;
+  metricsCompletionTime?: boolean;
+  metricsWorkload?: boolean;
+  metricsBurndown?: boolean;
   /** Stated by hand, or empty to leave the span to the work. */
   startDate?: string | null;
   endDate?: string | null;
@@ -205,6 +213,7 @@ interface BoardContextValue {
    */
   createTask: (input: TaskInput) => Promise<string | null>;
   updateTask: (id: string, data: Partial<TaskRow>) => Promise<string | null>;
+  bulkAssignTasks: (projectId: string, taskIds: string[], assigneeIds: string[], mode: "add" | "replace") => Promise<string | null>;
   /** Writes the order the rows were dragged into, for the whole list. */
   reorderTasks: (order: { id: string; order: number }[]) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -919,6 +928,43 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     [setTasks, notify]
   );
 
+  const bulkAssignTasks = useCallback(
+    async (
+      projectId: string,
+      taskIds: string[],
+      assigneeIds: string[],
+      mode: "add" | "replace"
+    ) => {
+      try {
+        const res = await fetch(
+          `/api/projects/${encodeURIComponent(projectId)}/tasks/assignees`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ taskIds, assigneeIds, mode }),
+          }
+        );
+        if (!res.ok)
+          return await errorMessage(res, "Could not assign these tasks.");
+        const updated: TaskRow[] = await res.json();
+        const byId = new Map(updated.map((task) => [task.id, task]));
+        setLoaded((previous) =>
+          previous.projectId === projectId
+            ? {
+                ...previous,
+                tasks: previous.tasks.map((task) => byId.get(task.id) ?? task),
+              }
+            : previous
+        );
+        notify("success", `Updated assignments on ${updated.length} tasks.`);
+        return null;
+      } catch {
+        return "Could not assign these tasks. Check your connection and try again.";
+      }
+    },
+    [notify]
+  );
+
   /**
    * Where the rows sit. A task carries its steps when it moves, so one drag can
    * renumber the list — it is written in one request, and put back as it was if
@@ -1328,6 +1374,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     stats,
     createTask,
     updateTask,
+    bulkAssignTasks,
     reorderTasks,
     deleteTask,
     createDeveloper,
@@ -1376,6 +1423,7 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
       stats,
       createTask,
       updateTask,
+      bulkAssignTasks,
       reorderTasks,
       deleteTask,
       createDeveloper,

@@ -108,6 +108,7 @@ export const VIEW_LABELS: Record<HideableView, string> = {
   tracker: "Tracker",
   wiki: "Wiki",
   reports: "Reports",
+  metrics: "Metrics",
 };
 
 /** And how it is drawn, so a list of tools is one list rather than three. */
@@ -116,6 +117,7 @@ export const VIEW_ICONS: Record<HideableView, ReactNode> = {
   tracker: TRACKER_ICON,
   wiki: WIKI_ICON,
   reports: REPORTS_ICON,
+  metrics: <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 13h12M3 10V7m5 3V3m5 7V5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>,
 };
 
 /**
@@ -129,4 +131,5 @@ export const VIEW_ORDER: HideableView[] = [
   "tracker",
   "wiki",
   "reports",
+  "metrics",
 ];

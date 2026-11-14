@@ -1,0 +1,1 @@
+ALTER TABLE "Project" ADD COLUMN "metricsBurndown" BOOLEAN NOT NULL DEFAULT true;
