@@ -869,7 +869,10 @@ function ColumnMenu({
         }
       }}
       onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget))
+        // A native pointer blur can have no next focus target. Closing here
+        // would remove Edit columns before its click fires. Outside pointer
+        // presses are already handled by Popover; keep keyboard focus exits.
+        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget))
           onLeave(e.relatedTarget);
       }}
     >
