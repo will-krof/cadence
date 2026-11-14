@@ -115,9 +115,9 @@ function useStoredFlag(
 const VIEW_KEY = "hidden-views";
 
 /** The tools somebody keeps out of the sidebar. A project card is never one. */
-export type HideableView = "timeline" | "tracker" | "wiki" | "reports";
+export type HideableView = "timeline" | "tracker" | "wiki" | "reports" | "metrics";
 
-const ALL_VIEWS: HideableView[] = ["timeline", "tracker", "wiki", "reports"];
+const ALL_VIEWS: HideableView[] = ["timeline", "tracker", "wiki", "reports", "metrics"];
 
 export function useHiddenViews(): [
   HideableView[],

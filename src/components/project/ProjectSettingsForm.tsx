@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useFeedback } from "@/components/Feedback";
 import { Field, SettingToggle } from "@/components/ui";
 import { addDays, diffDays, formatRange, toISODate } from "@/lib/dates";
+import { PROJECT_METRICS } from "@/lib/metrics-types";
 import { PROJECT_TOOL_TOGGLES, Project, TASK_FIELD_TOGGLES } from "@/lib/types";
 
 /** Everything the settings form writes: the project's shape, in one payload. */
@@ -16,6 +17,13 @@ export interface ProjectSettingsValues {
   hasSprints: boolean;
   hasRoles: boolean;
   hasReports: boolean;
+  projectType: "PROJECT" | "PRODUCT";
+  hasMetrics: boolean;
+  metricsProgress: boolean;
+  metricsOverdue: boolean;
+  metricsCompleted: boolean;
+  metricsCompletionTime: boolean;
+  metricsWorkload: boolean;
   startDate: string | null;
   endDate: string | null;
   taskHasPriority: boolean;
@@ -50,6 +58,13 @@ function draftOf(project: Project): Draft {
     hasSprints: project.hasSprints,
     hasRoles: project.hasRoles,
     hasReports: project.hasReports,
+    projectType: project.projectType,
+    hasMetrics: project.hasMetrics,
+    metricsProgress: project.metricsProgress,
+    metricsOverdue: project.metricsOverdue,
+    metricsCompleted: project.metricsCompleted,
+    metricsCompletionTime: project.metricsCompletionTime,
+    metricsWorkload: project.metricsWorkload,
     startDate: dateValue(project.startDate),
     endDate: dateValue(project.endDate),
     taskHasPriority: project.taskHasPriority,
@@ -66,10 +81,11 @@ function draftOf(project: Project): Draft {
 
 /** Which section each answer belongs to, so a section can say it has changed. */
 const SECTION_KEYS = {
-  about: ["name", "description"],
+  about: ["name", "description", "projectType"],
   dates: ["startDate", "endDate"],
   tools: PROJECT_TOOL_TOGGLES.map((t) => t.key),
   task: TASK_FIELD_TOGGLES.map((t) => t.key),
+  metrics: PROJECT_METRICS.map((metric) => metric.flag),
 } satisfies Record<string, (keyof Draft)[]>;
 
 /**
@@ -221,6 +237,34 @@ export function ProjectSettingsForm({
           hint="What this project is called, and what it is about."
           changed={changedIn(SECTION_KEYS.about)}
         >
+          <fieldset>
+            <legend className="field-label mb-2">Project type</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {(["PROJECT", "PRODUCT"] as const).map((kind) => (
+                <label
+                  key={kind}
+                  className="flex cursor-pointer items-center gap-2 rounded-[var(--radius)] border border-[var(--hairline)] p-3 text-[0.8125rem]"
+                >
+                  <input
+                    type="radio"
+                    name={`project-type-${formId}`}
+                    value={kind}
+                    checked={draft.projectType === kind}
+                    onChange={() => set("projectType", kind)}
+                    className="peer sr-only"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-4 w-4 items-center justify-center rounded border text-[0.625rem] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--accent)] ${draft.projectType === kind ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-on)]" : "border-[var(--baseline)]"}`}
+                  >
+                    {draft.projectType === kind ? "✓" : ""}
+                  </span>
+                  {kind === "PROJECT" ? "Project" : "Product"}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
           <Field label="Project name">
             <input
               autoFocus
@@ -362,6 +406,33 @@ export function ProjectSettingsForm({
             off, and are waiting where they were if it comes back.
           </p>
         </Section>
+
+        {draft.hasMetrics && (
+          <Section
+            title="Metrics"
+            hint="Choose the indicators shown on this project's Metrics page. Values are calculated from its tasks."
+            changed={changedIn(SECTION_KEYS.metrics)}
+          >
+            {draft.projectType === "PROJECT" ? (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {PROJECT_METRICS.map((metric) => (
+                  <SettingToggle
+                    key={metric.key}
+                    checked={draft[metric.flag]}
+                    onChange={(value) => set(metric.flag, value)}
+                    label={metric.label}
+                    hint={metric.hint}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="t-small">
+                Product metrics will be added next, with manual entry for a
+                selected period. Project metrics are not shown for products.
+              </p>
+            )}
+          </Section>
+        )}
 
         <Section
           title="What a task asks for"

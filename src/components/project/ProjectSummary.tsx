@@ -1,5 +1,6 @@
 "use client";
 
+import { PROJECT_METRICS } from "@/lib/metrics-types";
 import { Avatar, TagChip } from "@/components/ui";
 import {
   Developer,
@@ -42,6 +43,35 @@ export function ProjectSummary({
         <h3 className="text-[0.8125rem] font-semibold">
           Project configuration
         </h3>
+        <div>
+          <h4 className="field-label mb-2">Project type</h4>
+          <span className="chip">
+            {project.projectType === "PRODUCT" ? "Product" : "Project"}
+          </span>
+        </div>
+        {project.hasMetrics && (
+          <div>
+            <h4 className="field-label mb-2">Metrics</h4>
+            {project.projectType === "PROJECT" ? (
+              <div className="flex flex-wrap gap-1.5">
+                {PROJECT_METRICS.filter((metric) => project[metric.flag]).map(
+                  (metric) => (
+                    <span key={metric.key} className="chip chip-accent">
+                      {metric.label}
+                    </span>
+                  ),
+                )}
+                {!PROJECT_METRICS.some((metric) => project[metric.flag]) && (
+                  <p className="t-small">No metrics selected.</p>
+                )}
+              </div>
+            ) : (
+              <p className="t-small">
+                Product metrics are planned for a later release.
+              </p>
+            )}
+          </div>
+        )}
         <div>
           <h4 className="field-label mb-2">Enabled tools</h4>
           <div className="flex flex-wrap gap-1.5">

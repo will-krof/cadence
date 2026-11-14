@@ -399,6 +399,17 @@ Only text-only JSON is accepted; multipart uploads and attachment fields are
 rejected. Tickets retain their sender snapshot if the profile is renamed or removed.
 No ticket-deletion endpoint is provided.
 
+## Metrics
+
+Choose **Project** or **Product** in Project settings, then enable **Metrics**.
+For Project, independently switch on progress, overdue tasks, completions in seven
+days, average completion time and team workload. Their values are calculated from
+tasks and recorded completion history. The overview stays read-only.
+
+Product is selectable, with product metrics planned for the next stage using
+manual entry by period. This release starts with project indicators only.
+See [definitions, permissions and test setup](docs/metrics.md).
+
 ## Built with
 
 | | |

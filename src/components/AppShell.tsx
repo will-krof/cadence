@@ -57,6 +57,7 @@ const NotesView = dynamic(
   { loading }
 );
 /** Charts and the arithmetic behind them, fetched only when they are opened. */
+const MetricsView = dynamic(() => import("@/components/MetricsView").then((m) => m.MetricsView), { loading });
 const ReportsView = dynamic(
   () => import("@/components/ReportsView").then((m) => m.ReportsView),
   { loading }
@@ -77,7 +78,7 @@ import {
 import { taskFields } from "@/lib/types";
 
 /** The views a project carries. Team isn't one: it belongs to the workspace. */
-type View = "overview" | "timeline" | "tracker" | "wiki" | "reports";
+type View = "overview" | "timeline" | "tracker" | "wiki" | "reports" | "metrics";
 
 const SIDEBAR_EVENT = "cadence:sidebarchange";
 
@@ -294,6 +295,7 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
           ? (["tracker"] as View[])
           : []),
         ...(sees(project.hasWiki, "canViewWiki") ? (["wiki"] as View[]) : []),
+        ...(project.hasMetrics && (admin || sees(project.hasTimeline, "canViewTimeline") || sees(project.hasTracker, "canViewTracker")) ? (["metrics"] as View[]) : []),
         // Reports read the boards and say nothing the boards don't, so they
         // are opened by whoever can open one of them rather than by a
         // permission of their own — a switch nobody asked for is a switch to
@@ -899,6 +901,8 @@ function Shell({ user, member }: { user?: ShellUser; member?: ShellMember }) {
                 />
               ) : activeView === "wiki" ? (
                 <WikiView project={activeProject} canEdit={may.wiki} />
+              ) : activeView === "metrics" ? (
+                <MetricsView key={activeProject.id} project={activeProject} />
               ) : activeView === "reports" ? (
                 <ReportsView key={activeProject.id} project={activeProject} />
               ) : (

@@ -1,14 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/api-auth";
 import { PROJECT_FIELDS } from "@/lib/project-select";
-import { parseFlags, parseSpan } from "@/lib/project-input";
+import { parseFlags, parseSpan, parseProjectType } from "@/lib/project-input";
 import { boundedText, LIMITS } from "@/lib/sanitize";
 import { badRequest, done, notFound } from "@/lib/responses";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
-  ctx: RouteContext<"/api/projects/[id]">
+  ctx: RouteContext<"/api/projects/[id]">,
 ) {
   const { user, response } = await requireUser();
   if (response) return response;
@@ -21,6 +21,9 @@ export async function PATCH(
   if ("tooLong" in named || "tooLong" in described) {
     return badRequest("That is too long");
   }
+
+  const kind = parseProjectType(body);
+  if ("error" in kind) return badRequest(kind.error);
 
   const span = parseSpan(body);
   if ("error" in span) return badRequest(span.error);
@@ -49,6 +52,7 @@ export async function PATCH(
       description: body.description === undefined ? undefined : described.value,
       ...parseFlags(body),
       ...span.data,
+      ...kind.data,
       archived: typeof body.archived === "boolean" ? body.archived : undefined,
     },
     select: PROJECT_FIELDS,
@@ -58,7 +62,7 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  ctx: RouteContext<"/api/projects/[id]">
+  ctx: RouteContext<"/api/projects/[id]">,
 ) {
   const { user, response } = await requireUser();
   if (response) return response;

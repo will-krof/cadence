@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { projectScope, requireUser } from "@/lib/api-auth";
 import { requireViewer } from "@/lib/viewer";
 import { PROJECT_FIELDS } from "@/lib/project-select";
-import { parseFlags, parseSpan } from "@/lib/project-input";
+import { parseFlags, parseSpan, parseProjectType } from "@/lib/project-input";
 import { boundedText, LIMITS } from "@/lib/sanitize";
 import { badRequest } from "@/lib/responses";
 import { jsonResponse } from "@/lib/json-response";
@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
 
   // A project can say when it runs rather than leaving it to its tasks — which
   // is what a team that doesn't plan in sprints needs.
+  const kind = parseProjectType(body);
+  if ("error" in kind) return badRequest(kind.error);
+
   const span = parseSpan(body);
   if ("error" in span) return badRequest(span.error);
 
@@ -54,6 +57,7 @@ export async function POST(request: NextRequest) {
       description: described.value,
       ...flags,
       ...span.data,
+      ...kind.data,
       userId: user.id,
       roles: {
         create: [

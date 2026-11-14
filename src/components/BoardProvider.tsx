@@ -97,6 +97,13 @@ interface ProjectInput {
   hasSprints?: boolean;
   hasRoles?: boolean;
   hasReports?: boolean;
+  projectType?: "PROJECT" | "PRODUCT";
+  hasMetrics?: boolean;
+  metricsProgress?: boolean;
+  metricsOverdue?: boolean;
+  metricsCompleted?: boolean;
+  metricsCompletionTime?: boolean;
+  metricsWorkload?: boolean;
   /** Stated by hand, or empty to leave the span to the work. */
   startDate?: string | null;
   endDate?: string | null;
